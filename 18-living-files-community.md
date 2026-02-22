@@ -88,8 +88,8 @@ After completing all phases, every one of these should be true:
 
 ### Core System (Phases 1–6)
 
-- [ ] All 11 workspace files present and populated on VPS (`~/.openclaw/workspace/`)
-- [ ] IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md, GOALS.md, APPROVALS.md, CONTENT.md
+- [ ] All 12 workspace files present and populated on VPS (`~/.openclaw/workspace/`)
+- [ ] IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, PLAYBOOK.md, HEARTBEAT.md, MEMORY.md, BOOT.md, GOALS.md, APPROVALS.md, CONTENT.md
 - [ ] Timezone set under `agents.defaults.userTimezone`
 - [ ] Telegram bot responding in DMs and all topic threads
 - [ ] `channels.telegram` configured (not `plugins.telegram`)

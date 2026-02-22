@@ -76,17 +76,17 @@ id: <briefId from context>
 
 export const TOPIC_SYSTEM_PROMPTS: Record<ChatTopic, string> = {
   general:
-    `You are ${SITE_CONFIG.aiName}, the user's personal AI assistant in the ${SITE_CONFIG.dashboardTitle}. Help with anything — system management, questions, general chat. Be concise and actionable.`,
+    `You are ${SITE_CONFIG.aiName}, the user's personal AI assistant in the ${SITE_CONFIG.dashboardTitle}. You have access to all connected tools and integrations. Check PLAYBOOK.md for the right tool chain for each scenario. Be concise and actionable.`,
   briefs: BRIEF_SYSTEM_PROMPT,
   reports: REPORT_SYSTEM_PROMPT,
   research:
-    "You conduct research using Perplexity web search. Present findings with structured sections and source references. Distinguish facts from analysis. Summarize key takeaways.",
+    "You conduct multi-source research. Check workspace memory first (GET /api/memory?q=query), then search connected communication channels, meeting transcripts, and web search. Synthesise findings with structured sections and source references. Save results to workspace via POST /api/memory (action: create, relativePath: research/<slug>.md). Distinguish facts from analysis.",
   tasks:
-    `You manage tasks and goals in the ${SITE_CONFIG.dashboardTitle}. When suggesting new tasks, use \`---task\\nname: <name>\\npriority: <H/M/L>\\ncategory: <${SITE_CONFIG.taskCategories.join("|")}>\\n---\` markers. Reference items with [View tasks](/tasks) or [View goals](/goals) links.`,
+    `You manage tasks and goals in the ${SITE_CONFIG.dashboardTitle}. Scheduling pipeline: Backlog → To Be Scheduled → To Do This Week → In Progress → Needs Review → Completed. Every task needs a goalId (use "general" if none fits), complexity (Simple/Moderate/Complex), and estimatedMinutes. Use POST /api/tasks/pickup to start work, POST /api/tasks/schedule for daily scheduling, GET /api/tasks/work for overnight context. When suggesting new tasks, use \`---task\\nname: <name>\\npriority: <H/M/L>\\ncategory: <${SITE_CONFIG.taskCategories.join("|")}>\\n---\` markers.`,
   "self-improvement":
-    "You reflect on AI capabilities and workspace optimization. Suggest actionable improvements to prompts, cron jobs, and configurations. Focus on efficiency and reliability.",
+    "You reflect on AI capabilities and workspace optimization. Use GET /api/heartbeats?stats=true for heartbeat performance, GET /api/activity?limit=50 for recent action history, GET /api/cron for cron job status, and GET /api/health for system health. Analyse patterns, identify failures or inefficiencies, and suggest actionable improvements to prompts, cron jobs, tool usage, and configurations.",
   memory:
-    "You manage the persistent memory system. Help review, organize, and update workspace memory files. Reference specific files and categories.",
+    "You manage the persistent memory system with 7 categories: Core, Business, Orchestration, Memory, Research, Projects, and Other. Use GET /api/memory?counts=true for category overview, GET /api/memory?category=<cat> to browse, GET /api/memory?q=<query> to search. Edit files via PUT /api/memory/<id> (base64url-encoded path, auto-commits to git). Create/append via POST /api/memory. Check staleness (30d/60d thresholds) and cross-references.",
 }
 
 // --- Research mode augmentations ---

@@ -1,4 +1,4 @@
-import { Target, KanbanSquare, Newspaper, Bell, Brain } from "lucide-react"
+import { Target, KanbanSquare, Newspaper, Bell, Brain, FileText } from "lucide-react"
 
 import type { SearchResult } from "@/types/index"
 
@@ -8,6 +8,7 @@ const TYPE_ICONS: Record<string, typeof Target> = {
   content: Newspaper,
   approval: Bell,
   memory: Brain,
+  document: FileText,
 }
 
 interface SearchResultItemProps {

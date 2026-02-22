@@ -322,6 +322,100 @@ systemctl --user restart openclaw-gateway
 
 ---
 
+### 6.11 GoHighLevel CRM — Read-Only Agency Access (via `ghl-reader` CLI)
+
+GoHighLevel (GHL) is a CRM/marketing platform where you manage multiple subaccounts (locations). Your AI gets read-only access to contacts, opportunities, pipelines, conversations, calendars, and team members across all subaccounts.
+
+**Authentication architecture:**
+- **Agency-level PIT** — lists all subaccounts. Cannot access subaccount data directly.
+- **Per-subaccount PITs** — one Private Integration Token per subaccount, each with read-only scopes.
+- Tokens stored in `~/.openclaw/credentials/ghl-location-tokens.json` as a `{locationId: token}` mapping.
+- PITs expire after 90 days (7-day overlap window for rotation).
+
+**You do (agency level — once):**
+
+1. Go to your GHL agency dashboard > **Settings > Integrations > Private Integrations**
+2. Create a private integration named "OpenClaw" at **agency level**
+3. Add scopes: `locations.readonly`, `users.readonly`
+4. Copy the token and give it + your Company ID to Claude Code
+
+**You do (per subaccount — repeat for each):**
+
+1. Switch to a subaccount in GHL
+2. Go to **Settings > Integrations > Private Integrations**
+3. Create a private integration named "OpenClaw"
+4. Add scopes: `contacts.readonly`, `opportunities.readonly`, `conversations.readonly`, `conversations/message.readonly`, `calendars.readonly`, `calendars/events.readonly`, `users.readonly`
+5. Copy the token and give it + the subaccount name to Claude Code
+
+**Claude Code does:**
+
+1. Stores agency token at `~/.openclaw/credentials/ghl-agency-token`
+2. Stores Company ID at `~/.openclaw/credentials/ghl-company-id`
+3. Creates `/usr/local/bin/ghl-reader`:
+
+```
+ghl-reader locations                                     # list all subaccounts + token status
+ghl-reader add-token <location> <token>                  # register a subaccount PIT
+ghl-reader remove-token <location>                       # remove a stored token
+ghl-reader contacts <location> [--limit N] [--query Q]   # list/search contacts
+ghl-reader pipelines <location>                          # list pipelines and stages
+ghl-reader opportunities <location> [--pipeline P]       # list opportunities
+ghl-reader conversations <location> [--limit N]          # list conversations
+ghl-reader conversation <location> <conv_id>             # read messages in a conversation
+ghl-reader calendars <location>                          # list calendars
+ghl-reader appointments <location> [--days N]            # upcoming appointments
+ghl-reader users <location>                              # list team members
+ghl-reader summary <location>                            # aggregated stats overview
+```
+
+4. Registers each subaccount token via `ghl-reader add-token <name> <token>` (auto-validates)
+5. Tests with `ghl-reader locations`, `ghl-reader contacts <location> --limit 5`, `ghl-reader pipelines <location>`
+
+> **Location resolution:** The `<location>` argument accepts a location ID or a partial name (case-insensitive). If the match is ambiguous, the CLI lists all matches.
+
+> **API details:** Base URL: `https://services.leadconnectorhq.com`, API version header: `Version: 2021-07-28`. Rate limit: 100 requests per 10 seconds, 200k/day.
+
+**Result:** Your AI can read CRM data across all your GHL subaccounts — contacts, pipelines, deals, conversations, calendars, and team members.
+
+---
+
+### 6.12 Trello — Board Read Access (via `trello-reader` CLI)
+
+Trello boards are used for content pipeline management. Your AI gets read-only access to boards, cards, lists, activity, and comments.
+
+**You do:**
+
+1. Go to [trello.com/power-ups/admin](https://trello.com/power-ups/admin) or have the Trello admin create a Power-Up
+2. Note the **API Key**
+3. Generate a user token by visiting: `https://trello.com/1/authorize?expiration=never&name=OpenClaw&scope=read&response_type=token&key=YOUR_API_KEY`
+4. Give the API key and token to Claude Code
+
+**Claude Code does:**
+
+1. Stores API key at `~/.openclaw/credentials/trello-api-key`
+2. Stores token at `~/.openclaw/credentials/trello-token`
+3. Creates `/usr/local/bin/trello-reader`:
+
+```
+trello-reader boards                                # list all open boards
+trello-reader lists <board>                         # list all lists in a board
+trello-reader cards <board> [--list LIST] [--limit N]  # list cards
+trello-reader card <card_id>                        # card details, checklists + comments
+trello-reader members <board>                       # list board members
+trello-reader activity <board> [--limit N]          # recent board activity
+trello-reader search <query> [--limit N]            # search across all boards
+```
+
+4. Tests with `trello-reader boards` and `trello-reader cards <board> --limit 5`
+
+> **Token expiry:** User tokens generated with `expiration=never` do not expire. If you need to revoke, go to Trello Settings > Connected Apps.
+
+> **API details:** Base URL: `https://api.trello.com/1`. Auth via query params `key` + `token`. Rate limit: 100 requests per 10 seconds per token.
+
+**Result:** Your AI can read all Trello boards, cards, lists, and activity.
+
+---
+
 ## Files Created
 
 | File | Purpose |
@@ -346,6 +440,13 @@ systemctl --user restart openclaw-gateway
 | `~/.openclaw/credentials/teams-refresh-token` | Teams Graph API refresh token |
 | `~/.openclaw/credentials/teams-get-token.sh` | Teams token refresh script |
 | `/usr/local/bin/teams-reader` | Teams reader CLI (Python + Graph API) |
+| `~/.openclaw/credentials/ghl-agency-token` | GHL agency Private Integration Token |
+| `~/.openclaw/credentials/ghl-company-id` | GHL agency Company ID |
+| `~/.openclaw/credentials/ghl-location-tokens.json` | GHL per-subaccount token mapping |
+| `/usr/local/bin/ghl-reader` | GHL CRM reader CLI (Python + REST API) |
+| `~/.openclaw/credentials/trello-api-key` | Trello API key |
+| `~/.openclaw/credentials/trello-token` | Trello user token (no expiry) |
+| `/usr/local/bin/trello-reader` | Trello board reader CLI (Python + REST API) |
 
 ## Verification
 
@@ -364,3 +465,12 @@ systemctl --user restart openclaw-gateway
 - [ ] Ask your AI: *"What's on my calendar today?"* — should pull from both calendars
 - [ ] Ask your AI: *"Summarise my recent emails"* — should pull from both inboxes
 - [ ] Ask your AI: *"What's happening in Slack?"* — should search across all channels
+- [ ] GHL locations listing: `ghl-reader locations`
+- [ ] GHL contacts: `ghl-reader contacts <location> --limit 5`
+- [ ] GHL pipelines: `ghl-reader pipelines <location>`
+- [ ] GHL summary: `ghl-reader summary <location>`
+- [ ] Ask your AI: *"Give me a summary of all my GHL subaccounts"*
+- [ ] Trello boards listing: `trello-reader boards`
+- [ ] Trello cards: `trello-reader cards Njin --limit 5`
+- [ ] Trello activity: `trello-reader activity "AI Orchestrator" --limit 5`
+- [ ] Ask your AI: *"What cards are in the Editing list on the Njin board?"*

@@ -127,6 +127,8 @@ State management for the chat interface:
 - `sendMessage(topic, content)` function
 - `clearMessages(topic)` function
 
+**@-mention context injection:** `buildHistory()` scans the latest user message for `@agent-id` patterns. If a matched agent has a `systemPrompt` field in `architecture-agents.ts`, it's injected as a system message before the conversation history. This makes agent mentions functional — typing `@research-analyst` triggers the research workflow, not just text decoration. Uses a `Set` to prevent duplicate injection. Only agents with a `systemPrompt` field trigger injection; the rest remain text-only. The `getAgentSystemPrompts()` function in `architecture-agents.ts` returns the id→prompt map.
+
 ### 11.6 Auto-Resize Textarea — `hooks/useAutoResizeTextarea.ts`
 
 Auto-expanding textarea that grows with content:
@@ -198,6 +200,36 @@ Per-topic read cursors track which messages have been seen.
 - `useEffect` on `activeTopic` → `markRead(activeTopic)` (fires on mount + topic switch)
 - `useEffect` on `isStreaming` → when streaming ends, `markRead(activeTopic)` (new messages while viewing)
 
+### 11.9 File Attachments
+
+The chat supports file attachments (images, PDFs, SVGs) with intelligent handling per file type.
+
+**Architecture:**
+- Client sends attachments as `{ name, type, dataUrl }` alongside the message
+- API route saves **metadata only** (name + type) to the `attachments` column in `chat_messages` — no file data stored in DB
+- Only raster images (JPEG, PNG, GIF, WebP) are sent to the gateway as `image_url` content parts
+- Non-image files (PDF, SVG) are described as text — they're not sent as `image_url` which would be rejected
+- Attachment-only messages (no text) are allowed — the DB stores `"[file(s) attached]"` as placeholder text
+
+**DB Migration:**
+```sql
+ALTER TABLE chat_messages ADD COLUMN attachments TEXT DEFAULT ''
+```
+The `attachments` column stores a JSON array of `{ name, type }` objects (e.g. `[{"name":"photo.jpg","type":"image/jpeg"}]`).
+
+**Display — `components/chat/ChatAttachmentDisplay.tsx`:**
+- **Inline thumbnails** (max 200×150) for raster images when `dataUrl` is available (current session only)
+- **Filename chips** with file type icons for non-previewable files or historical images after reload
+- **Lightbox overlay** — click any image thumbnail for full-size view with dark backdrop
+- Colour-adaptive: user bubble chips use blue tones, potential reuse on assistant side uses muted colours
+- After page reload, metadata persists (filename chips visible) but image preview data is lost (acceptable trade-off)
+
+**Hydration:** All three hooks (`useChat`, `useProjectChat`, `useMessagePolling`) parse the `attachments` JSON from DB rows into `ChatAttachment[]` with empty `dataUrl`.
+
+**Message rendering — `ChatMessageList.tsx`:**
+- `ChatAttachmentDisplay` renders above user message text
+- Placeholder text (`"[file(s) attached]"`) is hidden when attachment chips are visible
+
 ---
 
 ## Verification
@@ -219,3 +251,9 @@ Per-topic read cursors track which messages have been seen.
 - [ ] Clicking a topic clears its badge immediately (optimistic mark-read)
 - [ ] Staying on a topic during AI streaming does not produce unread count for that topic
 - [ ] Leaving the chat page, new messages arrive within 30s as badge updates
+- [ ] Sending an image-only message (no text) does not return 400
+- [ ] Attached images display as inline thumbnails in the chat bubble
+- [ ] Clicking an image thumbnail opens a fullscreen lightbox
+- [ ] Attached PDFs/SVGs display as filename chips (not sent as image_url)
+- [ ] After page reload, attached files show as filename chips (metadata persists)
+- [ ] Image + text messages correctly send the image to the gateway for processing

@@ -21,7 +21,7 @@ mkdir -p ~/.openclaw/workspace/business/{your-saas,your-consulting}
 
 ### 2.2 Create Core Workspace Files
 
-You need 8 files. Use Claude Code to create them — tell it about yourself and let it draft them, then review before saving.
+You need 9 files. Use Claude Code to create them — tell it about yourself and let it draft them, then review before saving.
 
 #### IDENTITY.md — Who your AI is
 
@@ -75,7 +75,7 @@ and keeps the business running smoothly.
 
 This file defines:
 
-- **Initialisation sequence** — What to read on startup (SOUL → IDENTITY → USER → TOOLS → MEMORY)
+- **Initialisation sequence** — What to read on startup (SOUL → IDENTITY → USER → TOOLS → PLAYBOOK → AGENTS → MEMORY)
 - **Memory architecture** — Daily notes, weekly synthesis, long-term memory
 - **Safe autonomous actions** — Reading files, writing research, checking calendar
 - **Permission-required actions** — Sending messages to others, creating PRs, deleting files
@@ -194,12 +194,41 @@ Start with seed facts. This file grows organically:
 [Document what works and what doesn't]
 ```
 
+#### PLAYBOOK.md — Situational tool routing
+
+Maps common scenarios to the right tool chains. When a situation matches, the AI follows the tool chain in order.
+
+```markdown
+# Playbook — Situational Tool Routing
+
+## Communication Monitoring
+**Triggers:** "check messages", "what's unread", "catch me up"
+1. Check Slack unread
+2. Check Teams chats
+3. Check email
+4. Summarise across all channels
+
+## Calendar & Scheduling
+**Triggers:** "what's on today", "schedule", "meetings"
+Always check ALL calendars (Google + Outlook if both connected).
+
+## Meeting Preparation
+**Triggers:** "prep for meeting", "meeting with [name]"
+1. Calendar details → 2. Search comms for attendee → 3. Prior meetings → 4. CRM record
+
+## Research & Intelligence
+**Triggers:** "research [topic]", "find out about"
+1. Check workspace memory first → 2. Search comms → 3. Web search → 4. Save to workspace
+```
+
+Add sections for: Meeting Follow-Up, CRM & Client Work, Content Production, Document Generation, Task & Goal Management, System Operations, Overnight Work. Each with trigger phrases and ordered tool chains.
+
 #### BOOT.md — Startup instructions
 
 ```markdown
 # Boot — Startup Instructions
 
-1. Read core files: SOUL → IDENTITY → USER → TOOLS → AGENTS → MEMORY → HEARTBEAT
+1. Read core files: SOUL → IDENTITY → USER → TOOLS → PLAYBOOK → AGENTS → MEMORY → HEARTBEAT
 2. Check last 3 daily notes from memory/
 3. Verify all channels connected
 4. Resume any in-progress tasks
@@ -241,8 +270,8 @@ ssh your-vps "systemctl --user restart openclaw-gateway"
 
 ## Verification
 
-- [ ] All 8 workspace files present on VPS at `~/.openclaw/workspace/`
-- [ ] IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md, MEMORY.md, BOOT.md
+- [ ] All 9 workspace files present on VPS at `~/.openclaw/workspace/`
+- [ ] IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, PLAYBOOK.md, HEARTBEAT.md, MEMORY.md, BOOT.md
 - [ ] Timezone set in `openclaw.json` under `agents.defaults.userTimezone`
 - [ ] Gateway restarted after config changes
 - [ ] Ask your AI: *"Who am I? What do you know about me?"* — response is rich and specific, not generic

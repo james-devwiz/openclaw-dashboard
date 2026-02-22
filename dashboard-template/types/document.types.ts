@@ -1,4 +1,4 @@
-export type DocumentCategory = "Meeting Transcript" | "Email Draft" | "Notes" | "Reference" | "Template"
+export type DocumentCategory = "Meeting Transcript" | "Email Draft" | "Notes" | "Reference" | "Template" | "Research"
 
 export interface Document {
   id: string

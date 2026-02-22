@@ -20,6 +20,7 @@ export interface AgentDefinition {
   description: string
   businesses: string[]
   skills: string[] // skill names; empty = all
+  systemPrompt?: string // injected as system message when @-mentioned in chat
 }
 
 export interface BusinessDefinition {

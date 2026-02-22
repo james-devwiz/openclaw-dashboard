@@ -6,6 +6,7 @@ import { getChatHistoryApi, clearChatHistoryApi } from "@/services/chat.service"
 import { useChatSessions } from "@/hooks/useChatSessions"
 import { useMessagePolling } from "@/hooks/useMessagePolling"
 import { TOPIC_SYSTEM_PROMPTS, RESEARCH_MODE_PROMPTS } from "@/lib/chat-prompts"
+import { getAgentSystemPrompts } from "@/lib/architecture-agents"
 import type { ResearchMode } from "@/components/chat/ResearchModeButtons"
 
 import type { ChatMessage, ChatTopic, ChatAttachment } from "@/types/index"
@@ -18,10 +19,13 @@ const PLAN_MODE_PROMPT = `You are in Plan Mode. Before taking any actions or exe
 3. Wait for the user to explicitly approve before proceeding
 Never skip straight to execution. Always plan first.`
 
+const MENTION_RE = /@([a-z][a-z0-9-]+)/g
+
 function buildHistory(
   messages: ChatMessage[],
   planMode: boolean,
   topicPrompt?: string,
+  latestUserContent?: string,
 ): { role: string; content: string }[] {
   const history: { role: string; content: string }[] = []
   if (topicPrompt) {
@@ -34,6 +38,20 @@ function buildHistory(
   }
   if (planMode) {
     history.push({ role: "system", content: PLAN_MODE_PROMPT })
+  }
+  // Inject agent system prompts for @-mentions in the latest user message
+  if (latestUserContent) {
+    const agentPrompts = getAgentSystemPrompts()
+    const injected = new Set<string>()
+    let match: RegExpExecArray | null
+    MENTION_RE.lastIndex = 0
+    while ((match = MENTION_RE.exec(latestUserContent)) !== null) {
+      const agentId = match[1]
+      if (!injected.has(agentId) && agentPrompts[agentId]) {
+        history.push({ role: "system", content: agentPrompts[agentId] })
+        injected.add(agentId)
+      }
+    }
   }
   const filtered = messages
     .filter((m) => m.status !== "error" && m.content.trim())
@@ -165,7 +183,7 @@ export function useChat() {
         if (researchMode) {
           topicPrompt += "\n\n" + RESEARCH_MODE_PROMPTS[researchMode]
         }
-        const history = buildHistory(messagesRef.current, planMode, topicPrompt)
+        const history = buildHistory(messagesRef.current, planMode, topicPrompt, content)
 
         const res = await fetch("/api/chat", {
           method: "POST",

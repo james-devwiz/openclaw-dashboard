@@ -1,4 +1,4 @@
-# Phase 16: Skill Management — Enable/Disable Toggle & Install from Command Centre
+# Phase 16: Skill & Model Management — Enable/Disable Toggle, Install & Models Dashboard
 
 ## Goal
 
@@ -55,6 +55,10 @@ Add two new exported functions:
 
 ```typescript
 export async function writeConfig(config: OpenClawConfig): Promise<void> {
+  // CRITICAL: Validate config before writing — readConfig() returns {} on error
+  if (!config.agents && !config.gateway && !config.channels) {
+    throw new Error("Refusing to write empty config — readConfig() may have failed")
+  }
   // Write JSON to CONFIG_PATH with chmod 600
 }
 
@@ -64,6 +68,8 @@ export async function restartGateway(): Promise<void> {
 ```
 
 Uses `writeFile` + `chmod` from `fs/promises`. Reuses the existing `CONFIG_PATH` constant and `runCommand()`.
+
+> **Bug fix (2026-02-20):** `readConfig()` returns `{}` on any error (file busy, parse error). Without validation, `writeConfig({})` would overwrite the entire config with an empty object. The guard checks for essential keys before writing.
 
 ### 16.4 Skill Toggle API — `app/api/architecture/skills/[name]/route.ts`
 
@@ -110,11 +116,13 @@ installSkill(name: string, installId: string): Promise<{message: string}>  // PO
 
 Extracted from SkillsTable to stay under 200-line limit. Contains:
 
-- Toggle switch (green = ready/enabled, grey = disabled)
+- Toggle switch using peer-checked checkbox pattern (hidden `<input>` + `peer-checked:bg-green-500` track + `peer-checked:translate-x-5` knob)
 - Status badge with 3 colours (green/red/yellow for ready/missing/disabled)
 - "Install" button for missing skills (blue, shows Download icon)
-- Loading spinner during toggle operations
+- Opacity reduction + pointer-events-none while busy
 - Expanded detail row with description, missing reasons, docs link, homepage link
+
+> **Toggle pattern (2026-02-20):** Uses `<label>` wrapping a hidden `<input type="checkbox" className="peer sr-only">`, a `<div>` for the track, and a `<span>` for the knob. The `peer-checked:` variants handle both colour and position — no manual state-based class switching needed.
 
 ### 16.8 SkillInstallModal — `components/architecture/SkillInstallModal.tsx` (new file)
 
@@ -146,25 +154,75 @@ Pass `refetch` from `useArchitecture()` to `SkillsTable` as `onRefresh`:
 
 ---
 
+## Models Tab (added 2026-02-20)
+
+A new "Models" tab on the Architecture page visualises all configured AI models.
+
+### Model Types & Shared Utils — `lib/model-utils.ts`
+
+Shared `MODEL_LABELS` map, `labelFromId()`, and `providerFromId()` — used by both the architecture API and chat model selector.
+
+### ModelInfo Type — `types/architecture.types.ts`
+
+```typescript
+export interface ModelInfo {
+  id: string       // e.g. "anthropic/claude-sonnet-4-6"
+  alias: string    // e.g. "sonnet4.6"
+  label: string    // e.g. "Claude Sonnet 4.6"
+  provider: string // "Anthropic" | "OpenAI" | "Ollama"
+  isPrimary: boolean
+  isFallback: boolean
+  isHeartbeat: boolean
+  disabled: boolean
+}
+```
+
+`ArchitectureData` extended with `models: ModelInfo[]`.
+
+### Architecture API — models in response
+
+`buildModels()` in `app/api/architecture/route.ts` reads `agents.defaults.models` catalog, `agents.defaults.model.primary/fallbacks`, and `agents.defaults.heartbeat.model` to build the model list with role flags.
+
+### Model Toggle API — `app/api/architecture/models/[id]/route.ts`
+
+PATCH handler: sets `agents.defaults.models[modelId].disabled` in config + restarts gateway. Model IDs contain `/` — received URL-encoded, decoded with `decodeURIComponent()`. Cannot disable the primary model (returns 400).
+
+### ModelsPanel + ModelCard — `components/architecture/`
+
+Card-based grid with provider filter pills (All/Anthropic/OpenAI/Ollama), enabled count, and per-card toggle switches using the peer-checked checkbox pattern. Primary model toggle is disabled. Provider badges are colour-coded (orange/emerald/purple). Role badges: Primary (blue), Fallback (gray), Heartbeat (amber).
+
+### Chat model selector filtering
+
+`app/api/chat/models/route.ts` skips models where `modelsCatalog[id]?.disabled === true`, so disabled models don't appear in the Chat dropdown.
+
+---
+
 ## Files Summary
 
 | File | Action | ~Lines |
 |---|---|---|
-| `types/architecture.types.ts` | Modify | +10 |
+| `types/architecture.types.ts` | Modify | +20 (added `ModelInfo`, extended `ArchitectureData`) |
 | `types/index.ts` | Modify | +1 |
-| `app/api/architecture/route.ts` | Modify | +5 |
-| `lib/gateway.ts` | Modify | +10 |
+| `app/api/architecture/route.ts` | Modify | +40 (added `buildModels()`) |
+| `lib/gateway.ts` | Modify | +13 (writeConfig guard, models disabled type) |
+| `lib/model-utils.ts` | New | ~22 (shared model labels/providers) |
 | `app/api/architecture/skills/[name]/route.ts` | Modify | +25 |
 | `app/api/architecture/skills/[name]/install/route.ts` | New | ~110 |
-| `services/architecture.service.ts` | Modify | +20 |
-| `components/architecture/SkillRow.tsx` | New | ~105 |
+| `app/api/architecture/models/[id]/route.ts` | New | ~50 (model toggle endpoint) |
+| `app/api/chat/models/route.ts` | Modify | ~5 (shared utils import, filter disabled) |
+| `services/architecture.service.ts` | Modify | +30 (added `toggleModel()`) |
+| `hooks/useArchitecture.ts` | Modify | +10 (added `refreshing` state) |
+| `components/architecture/SkillRow.tsx` | New | ~105 (peer-checked toggle) |
 | `components/architecture/SkillInstallModal.tsx` | New | ~95 |
+| `components/architecture/ModelCard.tsx` | New | ~70 (model card with toggle) |
+| `components/architecture/ModelsPanel.tsx` | New | ~85 (grid with filter pills) |
 | `components/architecture/SkillsTable.tsx` | Modify | ~30 changed |
-| `app/architecture/page.tsx` | Modify | +1 |
-| **Total** | **3 new, 8 modified** |
+| `app/architecture/page.tsx` | Modify | +20 (Models tab, refresh animation) |
+| **Total** | **7 new, 10 modified** |
 
 ## Verification
 
+### Skills
 - [ ] Architecture > Skills tab shows toggle switches on ready/disabled skills
 - [ ] Toggle a ready skill to disabled → yellow "disabled" badge, gateway restarts
 - [ ] Toggle it back to enabled → green "ready" badge, gateway restarts
@@ -177,5 +235,19 @@ Pass `refetch` from `useArchitecture()` to `SkillsTable` as `onRefresh`:
 - [ ] Invalid skill names return 400 error
 - [ ] Install timeout (120s) handles gracefully
 - [ ] `openclaw.json` updated correctly after toggle (check with `jq`)
+- [ ] Toggle failure shows alert popup (not just console error)
+
+### Models
+- [ ] Architecture > Models tab shows all configured models as cards
+- [ ] Each card displays correct label, model ID, and provider badge
+- [ ] Provider filter pills work (All/Anthropic/OpenAI/Ollama)
+- [ ] Role badges show correctly: Primary (blue), Fallback (gray), Heartbeat (amber)
+- [ ] Disable a non-primary model → card dims, model disappears from Chat selector
+- [ ] Re-enable → card restores, model reappears in Chat selector
+- [ ] Primary model toggle is disabled (greyed out, can't click)
+- [ ] `openclaw.json` updated correctly after toggle
+
+### General
+- [ ] Refresh button spins during data fetch and shows "Refreshed" confirmation
 - [ ] `npm run build` succeeds without errors
 - [ ] Deploy to VPS and verify on live dashboard

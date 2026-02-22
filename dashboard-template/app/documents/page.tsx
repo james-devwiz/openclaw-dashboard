@@ -1,16 +1,26 @@
-"use client" // Requires useDocuments hook for filtered document fetching and state
+"use client" // Requires useDocuments hook for filtered document fetching, state for modals/slide-over
 
 import { useState } from "react"
-import { FileText, RefreshCw, Search } from "lucide-react"
+import { FileText, RefreshCw, Search, Plus } from "lucide-react"
 
 import PageHeader from "@/components/layout/PageHeader"
 import { DocumentFilters } from "@/components/documents/DocumentFilters"
 import { DocumentListItem } from "@/components/documents/DocumentListItem"
-import { useDocuments } from "@/hooks/useDocuments"
+import CreateDocumentModal from "@/components/documents/CreateDocumentModal"
+import DocumentSlideOver from "@/components/documents/DocumentSlideOver"
+import { BriefPagination } from "@/components/briefs/BriefPagination"
+import { useDocuments, PAGE_SIZE } from "@/hooks/useDocuments"
+
+import type { Document } from "@/types"
 
 export default function DocumentsPage() {
-  const { documents, total, category, setCategory, search, setSearch, loading, removeDocument, refetch } = useDocuments()
+  const {
+    documents, total, category, setCategory, search, setSearch,
+    page, setPage, loading, createDocument, updateDocument, removeDocument, refetch,
+  } = useDocuments()
   const [searchInput, setSearchInput] = useState("")
+  const [showCreate, setShowCreate] = useState(false)
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
 
   const handleSearch = () => setSearch(searchInput.trim())
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -23,13 +33,22 @@ export default function DocumentsPage() {
         title="Documents"
         subtitle="Meeting transcripts, email drafts, notes, and reference material"
         actions={
-          <button
-            onClick={refetch}
-            className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Refresh documents"
-          >
-            <RefreshCw size={16} aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+              aria-label="Create new document"
+            >
+              <Plus size={14} aria-hidden="true" /> New
+            </button>
+            <button
+              onClick={refetch}
+              className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Refresh documents"
+            >
+              <RefreshCw size={16} aria-hidden="true" />
+            </button>
+          </div>
         }
       />
 
@@ -42,7 +61,7 @@ export default function DocumentsPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search by title or tags..."
+            placeholder="Search titles, tags, and content..."
             className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             aria-label="Search documents"
           />
@@ -88,10 +107,32 @@ export default function DocumentsPage() {
       ) : (
         <div className="space-y-3">
           {documents.map((doc) => (
-            <DocumentListItem key={doc.id} doc={doc} onDelete={removeDocument} />
+            <DocumentListItem key={doc.id} doc={doc} onDelete={removeDocument} onOpen={setSelectedDoc} />
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      <BriefPagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+
+      {/* Create modal */}
+      {showCreate && (
+        <CreateDocumentModal
+          onClose={() => setShowCreate(false)}
+          onCreate={createDocument}
+        />
+      )}
+
+      {/* Document slide-over */}
+      <DocumentSlideOver
+        doc={selectedDoc}
+        onClose={() => setSelectedDoc(null)}
+        onUpdate={async (id, updates) => {
+          await updateDocument(id, updates)
+          setSelectedDoc((prev) => prev ? { ...prev, ...updates } : null)
+        }}
+        onDelete={(id) => { removeDocument(id); setSelectedDoc(null) }}
+      />
     </div>
   )
 }

@@ -34,7 +34,7 @@ export interface MemorySuggestion {
 }
 
 export interface SearchResult {
-  type: "goal" | "task" | "content" | "approval" | "memory"
+  type: "goal" | "task" | "content" | "approval" | "memory" | "document"
   id: string
   title: string
   subtitle: string

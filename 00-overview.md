@@ -54,7 +54,7 @@ This plan builds on top of that foundation.
 ## How to Use This Plan
 
 1. **Clone or download this repo** so the `deployment-plan/` folder is in your local project directory.
-2. **Work through phases in order** (1–18). Each phase builds on the previous one.
+2. **Work through phases in order** (1–20). Each phase builds on the previous one.
 3. **For each phase**, open Claude Code and point it at the file:
    ```
    /plan Implement the plan in deployment-plan/01-safety-net.md
@@ -74,7 +74,7 @@ This plan builds on top of that foundation.
 | Phase | File | What You Get |
 |---|---|---|
 | **1** | `01-safety-net.md` | Claude Code project set up, backups, version control |
-| **2** | `02-context-engineering.md` | 8 workspace files giving your AI persistent identity and context |
+| **2** | `02-context-engineering.md` | 9 workspace files giving your AI persistent identity and context |
 | **3** | `03-telegram.md` | Telegram bot with topic groups for organised mobile-first comms |
 | **4** | `04-intelligence-memory.md` | Model routing strategy and semantic memory search |
 | **5** | `05-automation.md` | Heartbeat monitoring + 11 cron jobs for full automation |
@@ -88,9 +88,12 @@ This plan builds on top of that foundation.
 | **13** | `13-dashboard-approvals-memory-activity-search.md` | Approvals queue, Memory browser, Activity timeline, Cmd+K search |
 | **14** | `14-dashboard-projects.md` | AI workspaces with scoped instructions, knowledge base, project-scoped chat |
 | **15** | `15-dashboard-mcp.md` | MCP server management, tools catalogue, project bindings, observability |
-| **16** | `16-dashboard-skills.md` | Skill enable/disable toggle, install from SKILL.md frontmatter |
+| **16** | `16-dashboard-skills.md` | Skill enable/disable toggle, install from SKILL.md frontmatter, Models tab with provider/role badges and enable/disable toggles |
 | **17** | `17-dashboard-deployment.md` | VPS deployment, systemd service, SSH tunnel, security |
 | **18** | `18-living-files-community.md` | Living Files philosophy, community notes, full verification checklist |
+| **19** | `19-custom-skills.md` | 6 custom managed skills: PDF, DOCX, XLSX, PPTX, MCP-Builder, Webapp-Testing |
+| **20** | `20-security-hardening.md` | API auth, security headers, rate limiting, exec hardening, DB backups |
+| **21** | `21-bonus-features.md` | *Optional:* Documents, AI-vetted Ideas, Content Studio (multi-platform publishing), LinkedIn Intelligence (CRM + WAMP scoring), Lead Generation (9-stage pipeline + Apollo enrichment) |
 
 ---
 

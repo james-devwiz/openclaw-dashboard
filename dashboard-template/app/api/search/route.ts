@@ -3,6 +3,7 @@ import { getGoals } from "@/lib/db-goals"
 import { getTasks } from "@/lib/db-tasks"
 import { getContent } from "@/lib/db-content"
 import { getApprovals } from "@/lib/db-approvals"
+import { getDocuments } from "@/lib/db-documents"
 import { searchWorkspaceFiles } from "@/lib/workspace"
 import type { SearchResult } from "@/types"
 
@@ -42,6 +43,11 @@ export async function GET(request: NextRequest) {
   )
   for (const a of approvals) {
     results.push({ type: "approval", id: a.id, title: a.title, subtitle: `${a.category} — ${a.status}`, href: "/approvals" })
+  }
+
+  const docs = getDocuments({ search: query, limit: 5 })
+  for (const d of docs) {
+    results.push({ type: "document", id: d.id, title: d.title, subtitle: `${d.category}`, href: "/documents" })
   }
 
   try {

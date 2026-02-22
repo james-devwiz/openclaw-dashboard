@@ -173,6 +173,7 @@ Create one module per domain, each calling `logActivity()` after mutations:
 | `lib/db-content.ts` | `getContent()`, `createContent()`, `updateContent()`, `deleteContent()` | `/api/content` |
 | `lib/db-approvals.ts` | `getApprovals()`, `createApproval()`, `updateApproval()`, `deleteApproval()` | `/api/approvals` |
 | `lib/db-activity.ts` | `getActivities(filters?)`, `getActivitiesByEntity(type, id)` | `/api/activity` |
+| `lib/db-documents.ts` | `getDocuments(opts?)`, `getDocumentCount(opts?)`, `getDocumentById(id)`, `createDocument()`, `updateDocument()`, `deleteDocument()` | `/api/documents` |
 
 ### 9.4 Gateway Client — `lib/gateway.ts`
 
@@ -269,7 +270,7 @@ Create types in `types/` with domain-specific files re-exported from `types/inde
 - `MemoryItem`: id, title, category, content, excerpt, filePath, relativePath, lastModified
 - `MemorySuggestion`: id, title, content, sourceType, sourceId, reason, status, targetCategory, targetFile, createdAt
 - `SuggestionStatus`: "pending" | "approved" | "dismissed"
-- `SearchResult`: type ("goal" | "task" | "content" | "approval" | "memory"), id, title, subtitle, href
+- `SearchResult`: type ("goal" | "task" | "content" | "approval" | "memory" | "document"), id, title, subtitle, href
 
 ### 9.7 API Routes
 
@@ -294,7 +295,8 @@ All routes are in `app/api/`. Pattern: GET for listing, POST for create, PATCH f
 | `/api/memory/[id]/diff` | GET | Diff between commits (`?from`, `?to`) |
 | `/api/memory/suggestions` | GET, POST, PATCH, DELETE | Memory suggestion CRUD; PATCH approve auto-writes to workspace |
 | `/api/activity/entity` | GET | Per-entity activity; `?entityType`, `?entityId` |
-| `/api/search` | GET | Global search across all entities |
+| `/api/documents` | GET, POST, PATCH, DELETE | Document CRUD; GET accepts `?category`, `?search` (searches title, tags, content), `?limit`, `?offset` |
+| `/api/search` | GET | Global search across all entities (goals, tasks, content, approvals, documents, memory) |
 | `/api/chat` | POST | Chat streaming bridge (covered in Phase 11) |
 | `/api/chat/models` | GET | List available AI models from openclaw.json |
 | `/api/chat/sessions` | GET, POST | Chat session CRUD; `?topic` filter |
@@ -321,6 +323,7 @@ Create one service file per domain in `services/`:
 | `services/memory.service.ts` | `getMemoryItemsApi()`, `getMemoryItemApi()`, `updateMemoryItemApi()`, `saveToMemoryApi()`, `getMemoryRefsApi()`, `getMemoryCategoryCountsApi()`, `getMemoryHistoryApi()`, `getMemoryDiffApi()`, `getMemorySuggestionsApi()`, `respondToSuggestionApi()` |
 | `services/brief.service.ts` | `getBriefsApi()`, `searchBriefsApi()`, `createBriefApi()`, `deleteBriefApi()` |
 | `services/project.service.ts` | `getProjectsApi()`, `createProjectApi()`, `updateProjectApi()`, `deleteProjectApi()`, `getProjectFilesApi()`, `addProjectFilesApi()`, `removeProjectFileApi()` |
+| `services/document.service.ts` | `getDocumentsApi()`, `createDocumentApi()`, `updateDocumentApi()`, `deleteDocumentApi()` |
 | `services/search.service.ts` | `searchGlobalApi()` |
 
 ### 9.9 Hooks
@@ -344,6 +347,7 @@ Create one hook per domain in `hooks/`:
 | `hooks/useProjectChat.ts` | `project.service.ts` | Project-scoped chat with streaming |
 | `hooks/useBriefSearch.ts` | `brief.service.ts` | Search/filter/paginate briefs |
 | `hooks/useChatUnread.ts` | — | Unread counts, polls every 30s |
+| `hooks/useDocuments.ts` | `document.service.ts` | Document list, pagination (PAGE_SIZE=20), CRUD operations |
 | `hooks/useGlobalSearch.ts` | `search.service.ts` | Global search state |
 
 ---

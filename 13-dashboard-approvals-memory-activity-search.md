@@ -27,10 +27,11 @@ Human-in-the-loop queue where your AI requests decisions and you respond.
 - Relative timestamp (`formatRelativeTime()`)
 
 **ApprovalResponseInput — `components/approvals/ApprovalResponseInput.tsx`:**
-- Text input for freeform response
+- Textarea for freeform feedback + Send button (blue arrow)
 - Quick action buttons: **Approve** (green), **Reject** (red), **Defer** (amber)
-- Approve/Reject/Defer set the status and optionally include the text response
-- Submit calls `respondApprovalApi()` → updates approval + logs activity
+- **AI revision loop:** Send button triggers `POST /api/approvals/revise` — sends original proposal + user feedback to the gateway (GPT-5.1 codex mini via `lib/approval-revision.ts`). AI returns revised title + context. Approval updates **in-place** staying "Pending" with revised proposal. Feedback history accumulates in `response` field (AEST-timestamped, `---`-separated). Card shows "Revising..." badge + blue ring during processing. Users can revise multiple times before making a final decision.
+- **Final decisions:** Approve/Reject/Defer call `respondApprovalApi()` → updates approval status + logs activity. These are terminal actions that resolve the approval.
+- **Side effects on resolve:** Task-linked approvals auto-delete (reject) or promote to "To Be Scheduled" + create comment (approve); lead-linked trigger pipeline; LinkedIn-linked update action status.
 
 **Sorting:** Priority-sorted (Urgent first, then High, Medium, Low). Within same priority, newest first.
 
@@ -165,7 +166,7 @@ Searchable from any page. Opens a modal dialog, searches across all entity types
 **SearchDialog — `components/search/SearchDialog.tsx`:**
 - Modal overlay triggered by `Cmd+K` (Mac) or `Ctrl+K` (Windows)
 - Search input with autofocus
-- Results grouped by type (Goals, Tasks, Content, Approvals, Memory)
+- Results grouped by type (Goals, Tasks, Content, Approvals, Documents, Memory)
 - Keyboard navigation: arrow keys to move, Enter to select, ESC to close
 - Click or Enter navigates to the item's page
 
@@ -180,7 +181,7 @@ Searchable from any page. Opens a modal dialog, searches across all entity types
 - Manages keyboard navigation state (selected index, open/close)
 
 **API: `GET /api/search?q=<query>`:**
-- Searches across all 5 tables + memory files
+- Searches across all 6 tables + memory files
 - Returns `SearchResult[]` with type, id, title, subtitle, href
 - Limits results per type (e.g., 5 per category)
 
@@ -192,11 +193,14 @@ Searchable from any page. Opens a modal dialog, searches across all entity types
 
 ## Verification
 
-- [ ] Approvals page shows priority-sorted list with colored left borders
-- [ ] Expanding an approval card shows full context
-- [ ] Text response input works — typing + clicking Approve/Reject/Defer
-- [ ] Approval responses logged in activity table
-- [ ] Sidebar Approvals badge shows pending count, auto-updates every 30s
+- [x] Approvals page shows priority-sorted list with colored left borders
+- [x] Expanding an approval card shows full context
+- [x] Send button triggers AI revision loop — proposal updates in-place, approval stays Pending
+- [x] Revision feedback history shown in blue panel when pending approval has prior feedback
+- [x] "Revising..." badge + blue ring shown during AI processing
+- [x] Approve/Reject/Defer resolve the approval as final decisions
+- [x] Approval responses logged in activity table
+- [x] Sidebar Approvals badge shows pending count, auto-updates every 30s
 - [x] Memory page shows category sidebar with lightweight counts (no file reads)
 - [x] Switching categories only loads that category's files (lazy loading)
 - [x] Search input filters memory files with 300ms debounce and highlights matches
@@ -213,5 +217,5 @@ Searchable from any page. Opens a modal dialog, searches across all entity types
 - [ ] Expanding an activity item shows field-level diffs
 - [ ] "Load more" pagination works
 - [ ] Cmd+K opens search dialog from any page
-- [ ] Search returns results across goals, tasks, content, approvals, memory
+- [ ] Search returns results across goals, tasks, content, approvals, documents, memory
 - [ ] Arrow keys navigate results, Enter selects, ESC closes

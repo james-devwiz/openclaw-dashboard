@@ -41,9 +41,9 @@ export function getDocuments(opts?: { category?: string; search?: string; limit?
     params.push(opts.category)
   }
   if (opts?.search) {
-    conditions.push("(title LIKE ? OR tags LIKE ?)")
+    conditions.push("(title LIKE ? OR tags LIKE ? OR content LIKE ?)")
     const term = `%${opts.search}%`
-    params.push(term, term)
+    params.push(term, term, term)
   }
 
   const limit = opts?.limit || 50
@@ -66,12 +66,18 @@ export function getDocumentCount(opts?: { category?: string; search?: string }):
     params.push(opts.category)
   }
   if (opts?.search) {
-    conditions.push("(title LIKE ? OR tags LIKE ?)")
+    conditions.push("(title LIKE ? OR tags LIKE ? OR content LIKE ?)")
     const term = `%${opts.search}%`
-    params.push(term, term)
+    params.push(term, term, term)
   }
 
   return (db.prepare(`SELECT COUNT(*) as c FROM documents WHERE ${conditions.join(" AND ")}`).get(...params) as { c: number }).c
+}
+
+export function getDocumentById(id: string): Document | null {
+  const db = getDb()
+  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocRow | undefined
+  return row ? rowToDoc(row) : null
 }
 
 export function createDocument(input: {

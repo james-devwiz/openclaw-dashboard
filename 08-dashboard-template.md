@@ -65,7 +65,7 @@ If the build succeeds, the template is correctly configured.
 
 ### 8.5 Customise Architecture Agents
 
-Open `lib/architecture-agents.ts` and replace the example agents with your own AI role definitions. Each agent appears on the Architecture page.
+Open `lib/architecture-agents.ts` and replace the example agents with your own AI role definitions. Each agent appears on the Architecture page. Agents with a `systemPrompt` field get that context injected as a system message when @-mentioned in chat — this makes mentions functional, not just cosmetic.
 
 ### 8.6 Continue with Phases 9–18
 
@@ -85,4 +85,4 @@ Phase 17 covers VPS deployment. Phase 18 is the final verification checklist.
 - [ ] `.env.local` created with gateway token and VPS IP
 - [ ] `npm run build` succeeds without errors
 - [ ] No references to placeholder values ("Your AI", "Business 1") remain in site-config
-- [ ] `lib/architecture-agents.ts` customised with your agent definitions
+- [ ] `lib/architecture-agents.ts` customised with your agent definitions (add `systemPrompt` to key agents)

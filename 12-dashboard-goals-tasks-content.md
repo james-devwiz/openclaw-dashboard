@@ -84,7 +84,7 @@ Click a task card to open a slide-over panel with 4 sections:
 1. **TaskSlideOverFields** — name, expandable description (`rows={4}`, `resize-y`, `min-h-[80px]`), status, priority, category, due date, source, goal dropdowns
 2. **TaskRelationsSection** — linked goal (name + badge), linked approval (title + status badge if present), sibling tasks (other tasks in same goal), content items (linked to same goal). Collapsible with `Link2` icon
 3. **TaskActivitySection** — per-task activity timeline using existing `ActivityTimeline` component. Fetches via `GET /api/activity/entity?entityType=task&entityId=xxx`
-4. **TaskCommentSection** — comment thread (`GET/POST /api/comments?taskId=xxx`) with source attribution (user vs openclaw). Comments stored in `comments` table
+4. **TaskCommentSection** — comment thread (`GET/POST /api/comments?taskId=xxx`) with source attribution (user vs openclaw). Comments stored in `comments` table, sorted newest-first. **AI review flow:** Takes `taskStatus` prop from TaskSlideOver. When task status changes to "Needs Review", auto-calls `POST /api/comments/review` which generates a review summary via `lib/task-review.ts` (non-streaming gateway call, `gpt-5.1-codex-mini`). When user replies on a "Needs Review" task, auto-calls `POST /api/comments/reply` which generates an AI reply addressing the feedback. Thinking indicator ("Jimmy AI is reviewing...") shown during AI calls. Uses refs to track status transitions and prevent duplicate triggers. Service functions: `requestReviewSummaryApi()`, `requestReviewReplyApi()` in `comment.service.ts`
 
 Header includes delete button (`Trash2` icon with `window.confirm()` guard).
 
@@ -180,6 +180,11 @@ Split into 4 files for 200-line limit:
 - [ ] Approval badge shows on linked task cards
 - [ ] Rejecting an approval auto-deletes the linked task
 - [ ] Approving with response auto-creates comment on linked task
+- [ ] Comments appear newest-first in the comment thread
+- [ ] Moving a task to "Needs Review" auto-generates a Jimmy AI review summary comment
+- [ ] Thinking indicator ("Jimmy AI is reviewing...") shows during AI comment generation
+- [ ] Replying to a comment on a "Needs Review" task triggers an auto-reply from Jimmy AI
+- [ ] Non-"Needs Review" tasks do not trigger AI comments
 - [ ] Recurring table shows cron jobs with sortable columns
 - [ ] Goal dropdown on recurring rows links/unlinks correctly
 - [ ] Clicking "Run" triggers the cron job

@@ -16,6 +16,7 @@ const FILTERS: { value: DocumentCategory | undefined; label: string }[] = [
   { value: "Notes", label: "Notes" },
   { value: "Reference", label: "Reference" },
   { value: "Template", label: "Templates" },
+  { value: "Research", label: "Research" },
 ]
 
 export function DocumentFilters({ selected, onSelect }: DocumentFiltersProps) {
