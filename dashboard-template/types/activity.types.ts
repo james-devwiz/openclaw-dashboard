@@ -1,5 +1,5 @@
-export type ActivityEntityType = "task" | "goal" | "content" | "approval" | "chat" | "brief" | "heartbeat" | "memory" | "project" | "mcp"
-export type ActivityAction = "created" | "updated" | "deleted" | "status_changed" | "stage_changed" | "responded"
+export type ActivityEntityType = "task" | "goal" | "content" | "approval" | "chat" | "brief" | "heartbeat" | "memory" | "project" | "mcp" | "lead" | "linkedin" | "post"
+export type ActivityAction = "created" | "updated" | "deleted" | "status_changed" | "stage_changed" | "responded" | "published" | "scheduled"
 
 export interface ActivityItem {
   id: string

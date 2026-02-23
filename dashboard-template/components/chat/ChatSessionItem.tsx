@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { MessageSquare, Pencil, Trash2, Check, X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/utils"
 
@@ -83,20 +84,24 @@ export default function ChatSessionItem({
         </p>
       </div>
       <div className="hidden group-hover:flex items-center gap-1 shrink-0">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={(e) => { e.stopPropagation(); setIsRenaming(true) }}
-          className="p-1 rounded hover:bg-accent-foreground/10"
+          className="h-6 w-6 p-1"
           aria-label="Rename session"
         >
           <Pencil size={12} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={(e) => { e.stopPropagation(); onDelete() }}
-          className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500"
+          className="h-6 w-6 p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20"
           aria-label="Delete session"
         >
           <Trash2 size={12} />
-        </button>
+        </Button>
       </div>
     </button>
   )

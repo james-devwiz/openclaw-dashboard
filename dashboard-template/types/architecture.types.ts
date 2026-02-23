@@ -20,7 +20,7 @@ export interface AgentDefinition {
   description: string
   businesses: string[]
   skills: string[] // skill names; empty = all
-  systemPrompt?: string // injected as system message when @-mentioned in chat
+  systemPrompt?: string
 }
 
 export interface BusinessDefinition {
@@ -62,10 +62,22 @@ export interface AgentWithLiveData extends AgentDefinition {
   totalSkillCount: number
 }
 
+export interface ModelInfo {
+  id: string
+  alias: string
+  label: string
+  provider: string
+  isPrimary: boolean
+  isFallback: boolean
+  isHeartbeat: boolean
+  disabled: boolean
+}
+
 export interface ArchitectureData {
   agents: AgentWithLiveData[]
   skills: SkillInfo[]
   businesses: BusinessDefinition[]
+  models: ModelInfo[]
 }
 
 // ReactFlow node data types
@@ -87,4 +99,25 @@ export interface SkillDetail {
 export interface SkillGroupNodeData {
   agentId: string
   skills: SkillInfo[]
+}
+
+export interface ModelDetailAgent {
+  id: string
+  name: string
+}
+
+export interface ModelDetailCronJob {
+  name: string
+  schedule: string
+}
+
+export interface ModelDetail {
+  id: string
+  alias: string
+  provider: string
+  role: string
+  agents: ModelDetailAgent[]
+  cronJobs: ModelDetailCronJob[]
+  topics: string[]
+  isHeartbeat: boolean
 }

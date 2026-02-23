@@ -2,26 +2,14 @@ import { readFile } from "fs/promises"
 import { homedir } from "os"
 import { join } from "path"
 
+import { labelFromId, providerFromId } from "@/lib/model-utils"
+import { getDisabledModelIds } from "@/lib/db-models"
+
 interface ModelEntry {
   id: string
   alias: string
   label: string
   provider: string
-}
-
-function labelFromId(id: string): string {
-  const map: Record<string, string> = {
-    "openai-codex/gpt-5.2": "GPT-5.2",
-    "anthropic/claude-sonnet-4-5": "Claude Sonnet 4.5",
-    "anthropic/claude-opus-4-6": "Claude Opus 4.6",
-  }
-  return map[id] || id.split("/").pop() || id
-}
-
-function providerFromId(id: string): string {
-  if (id.startsWith("openai")) return "OpenAI"
-  if (id.startsWith("anthropic")) return "Anthropic"
-  return id.split("/")[0] || "Unknown"
 }
 
 export async function GET() {
@@ -30,19 +18,32 @@ export async function GET() {
     const raw = await readFile(configPath, "utf-8")
     const config = JSON.parse(raw)
 
-    const models: ModelEntry[] = []
     const agentConfig = config.agents?.defaults || {}
-    const primary = agentConfig.model
-    const fallbacks: string[] = agentConfig.fallbackModels || []
+    const modelConfig = agentConfig.model || {}
+    const primary = typeof modelConfig === "string" ? modelConfig : modelConfig.primary
+    const fallbacks: string[] = (typeof modelConfig === "object" && Array.isArray(modelConfig.fallbacks)) ? modelConfig.fallbacks : []
+    const modelsCatalog: Record<string, { alias?: string }> = agentConfig.models || {}
+    const disabledIds = getDisabledModelIds()
 
-    const allModels = primary ? [primary, ...fallbacks] : fallbacks
-    for (const id of allModels) {
-      const alias = id.split("/").pop()?.split("-")[0] || id
+    const seen = new Set<string>()
+    const models: ModelEntry[] = []
+
+    const addModel = (id: string) => {
+      if (!id || seen.has(id)) return
+      if (disabledIds.has(id)) return
+      seen.add(id)
+      const alias = modelsCatalog[id]?.alias || id.split("/").pop()?.split("-")[0] || id
       models.push({ id, alias, label: labelFromId(id), provider: providerFromId(id) })
     }
 
+    // Ordered: primary first, then fallbacks, then remaining catalog entries
+    if (primary) addModel(primary)
+    for (const id of fallbacks) addModel(id)
+    for (const id of Object.keys(modelsCatalog)) addModel(id)
+
     return Response.json({ models })
-  } catch {
+  } catch (error) {
+    console.error("Failed to load chat models:", error)
     return Response.json({ models: [] })
   }
 }

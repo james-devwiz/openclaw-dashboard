@@ -3,10 +3,9 @@
 import { useState, useRef, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
-import { SITE_CONFIG } from "@/lib/site-config"
-import { ALL_STATUSES, ALL_CATEGORIES } from "@/lib/task-constants"
+import { ALL_STATUSES, ALL_CATEGORIES, ALL_COMPLEXITIES, ALL_ASSIGNEES } from "@/lib/task-constants"
 
-import type { Task, TaskStatus, TaskCategory, TaskPriority } from "@/types/index"
+import type { Task, TaskStatus, TaskCategory, TaskPriority, TaskComplexity, TaskAssignee } from "@/types/index"
 
 interface TaskSlideOverFieldsProps {
   task: Task
@@ -69,6 +68,19 @@ export default function TaskSlideOverFields({ task, onUpdate }: TaskSlideOverFie
         </div>
 
         <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Assignee</label>
+          <select
+            value={task.assignee || ""}
+            onChange={(e) => onUpdate(task.id, { assignee: (e.target.value || undefined) as TaskAssignee })}
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            aria-label="Task assignee"
+          >
+            <option value="">Unassigned</option>
+            {ALL_ASSIGNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+
+        <div>
           <label className="text-xs text-muted-foreground mb-1 block">Priority</label>
           <select
             value={task.priority}
@@ -78,6 +90,31 @@ export default function TaskSlideOverFields({ task, onUpdate }: TaskSlideOverFie
           >
             {(["High", "Medium", "Low"] as const).map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
+        </div>
+
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Complexity</label>
+          <select
+            value={task.complexity || "Moderate"}
+            onChange={(e) => onUpdate(task.id, { complexity: e.target.value as TaskComplexity })}
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            aria-label="Task complexity"
+          >
+            {ALL_COMPLEXITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Estimated Time (min)</label>
+          <input
+            type="number"
+            min={0}
+            value={task.estimatedMinutes || ""}
+            onChange={(e) => onUpdate(task.id, { estimatedMinutes: parseInt(e.target.value) || 0 })}
+            placeholder="30"
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            aria-label="Estimated minutes"
+          />
         </div>
 
         <div>
@@ -106,7 +143,7 @@ export default function TaskSlideOverFields({ task, onUpdate }: TaskSlideOverFie
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">Created</label>
           <p className="text-sm text-foreground px-3 py-2">
-            {new Date(task.createdAt).toLocaleDateString(SITE_CONFIG.locale, { day: "numeric", month: "short", year: "numeric" })}
+            {new Date(task.createdAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
           </p>
         </div>
 

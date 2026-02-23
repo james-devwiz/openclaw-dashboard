@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-client"
 import type { MemoryItem, MemoryCategory, MemorySuggestion, SuggestionStatus } from "@/types/index"
 
 const BASE_URL = "/api/memory"
@@ -11,14 +12,14 @@ export async function getMemoryItemsApi(
   if (query) params.set("q", query)
   const qs = params.toString()
 
-  const res = await fetch(qs ? `${BASE_URL}?${qs}` : BASE_URL)
+  const res = await apiFetch(qs ? `${BASE_URL}?${qs}` : BASE_URL)
   if (!res.ok) throw new Error(`Memory fetch failed: ${res.status}`)
   const data = await res.json()
   return data.items || []
 }
 
 export async function getMemoryItemApi(encodedPath: string): Promise<MemoryItem | null> {
-  const res = await fetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}`)
+  const res = await apiFetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}`)
   if (!res.ok) return null
   const data = await res.json()
   return data.item || null
@@ -28,7 +29,7 @@ export async function updateMemoryItemApi(
   encodedPath: string,
   content: string
 ): Promise<MemoryItem | null> {
-  const res = await fetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}`, {
+  const res = await apiFetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ content }),
@@ -43,7 +44,7 @@ export async function saveToMemoryApi(opts: {
   relativePath: string
   content: string
 }): Promise<void> {
-  const res = await fetch(BASE_URL, {
+  const res = await apiFetch(BASE_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(opts),
@@ -52,14 +53,14 @@ export async function saveToMemoryApi(opts: {
 }
 
 export async function getMemoryRefsApi(): Promise<Record<string, string[]>> {
-  const res = await fetch(`${BASE_URL}?refs=true`)
+  const res = await apiFetch(`${BASE_URL}?refs=true`)
   if (!res.ok) throw new Error(`Memory refs fetch failed: ${res.status}`)
   const data = await res.json()
   return data.refs || {}
 }
 
 export async function getMemoryCategoryCountsApi(): Promise<Record<string, number>> {
-  const res = await fetch(`${BASE_URL}?counts=true`)
+  const res = await apiFetch(`${BASE_URL}?counts=true`)
   if (!res.ok) throw new Error(`Memory counts fetch failed: ${res.status}`)
   const data = await res.json()
   return data.counts || {}
@@ -67,7 +68,7 @@ export async function getMemoryCategoryCountsApi(): Promise<Record<string, numbe
 
 export async function getMemorySuggestionsApi(status?: SuggestionStatus): Promise<MemorySuggestion[]> {
   const url = status ? `${BASE_URL}/suggestions?status=${status}` : `${BASE_URL}/suggestions`
-  const res = await fetch(url)
+  const res = await apiFetch(url)
   if (!res.ok) throw new Error(`Suggestions fetch failed: ${res.status}`)
   const data = await res.json()
   return data.suggestions || []
@@ -80,14 +81,14 @@ export interface GitLogEntry {
 }
 
 export async function getMemoryHistoryApi(encodedPath: string): Promise<GitLogEntry[]> {
-  const res = await fetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}/history`)
+  const res = await apiFetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}/history`)
   if (!res.ok) return []
   const data = await res.json()
   return data.history || []
 }
 
 export async function getMemoryDiffApi(encodedPath: string, from: string, to = "HEAD"): Promise<string> {
-  const res = await fetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}/diff?from=${from}&to=${to}`)
+  const res = await apiFetch(`${BASE_URL}/${encodeURIComponent(encodedPath)}/diff?from=${from}&to=${to}`)
   if (!res.ok) return ""
   const data = await res.json()
   return data.diff || ""
@@ -98,7 +99,7 @@ export async function respondToSuggestionApi(
   status: SuggestionStatus,
   extra?: { title?: string; content?: string; targetFile?: string; targetCategory?: string }
 ): Promise<void> {
-  const res = await fetch(`${BASE_URL}/suggestions`, {
+  const res = await apiFetch(`${BASE_URL}/suggestions`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, status, ...extra }),

@@ -14,7 +14,8 @@ import type { ActivityEntityType } from "@/types/activity.types"
 const ENTITY_ROUTES: Partial<Record<ActivityEntityType, string>> = {
   task: "/goals",
   goal: "/goals",
-  content: "/content",
+  content: "/studio",
+  post: "/studio",
   approval: "/approvals",
   brief: "/brief",
   heartbeat: "/heartbeat",
@@ -77,7 +78,8 @@ export function ActivityTimelineItem({ item, isLast, index }: ActivityTimelineIt
               )}
             </p>
             <p className="text-xs text-muted-foreground">
-              {getActionLabel(item.action)}
+              <span className="font-medium text-foreground/70">{item.source === "dashboard" ? "You" : "AI Assistant"}</span>
+              {" "}{getActionLabel(item.action).toLowerCase()}
               {item.detail && ` — ${item.detail}`}
               {item.source && item.source !== "dashboard" && (
                 <span className="ml-1.5 inline-flex items-center rounded-full bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-600 dark:text-indigo-400">

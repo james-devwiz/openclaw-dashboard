@@ -16,7 +16,7 @@ interface RawCronJob {
   id: string
   name: string
   enabled: boolean
-  schedule: { kind: string; expr: string; tz: string }
+  schedule: { kind: string; expr?: string; tz?: string; everyMs?: number }
   sessionTarget?: string
   payload: { kind: string; message: string; model: string }
   delivery?: { mode: string; channel: string }
@@ -29,6 +29,15 @@ interface RawCronJob {
   }
 }
 
+function formatSchedule(s: RawCronJob["schedule"]): string {
+  if (s.kind === "every" && s.everyMs) {
+    const mins = Math.round(s.everyMs / 60000)
+    return mins >= 60 ? `every ${mins / 60}h` : `every ${mins}m`
+  }
+  if (!s.expr) return "unknown"
+  return s.tz ? `${s.expr} (${s.tz})` : s.expr
+}
+
 function mapJob(raw: RawCronJob): CronJob {
   const lastStatus = raw.state.lastStatus
   const mapped: CronJob["lastStatus"] =
@@ -36,7 +45,7 @@ function mapJob(raw: RawCronJob): CronJob {
 
   return {
     name: raw.name,
-    schedule: `${raw.schedule.expr} (${raw.schedule.tz})`,
+    schedule: formatSchedule(raw.schedule),
     model: raw.payload?.model || "default",
     target: raw.delivery ? { channel: raw.delivery.channel } : undefined,
     enabled: raw.enabled,
@@ -74,7 +83,8 @@ export async function GET() {
     const rawJobs: RawCronJob[] = data?.jobs || []
     const jobs = augmentWithGoals(rawJobs.filter((j) => j.enabled).map(mapJob))
     return NextResponse.json({ jobs })
-  } catch {
+  } catch (error) {
+    console.error("Failed to read cron jobs:", error)
     return NextResponse.json({ jobs: [] })
   }
 }

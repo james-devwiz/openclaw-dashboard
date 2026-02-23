@@ -4,6 +4,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ExternalLink } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import { getActivityConfig, getActionLabel } from "@/lib/activity-utils"
 
@@ -13,7 +14,8 @@ import type { ActivityEntityType } from "@/types/activity.types"
 const ENTITY_ROUTES: Partial<Record<ActivityEntityType, string>> = {
   task: "/goals",
   goal: "/goals",
-  content: "/content",
+  content: "/studio",
+  post: "/studio",
   approval: "/approvals",
   brief: "/brief",
   heartbeat: "/heartbeat",
@@ -21,9 +23,10 @@ const ENTITY_ROUTES: Partial<Record<ActivityEntityType, string>> = {
 
 interface ActivityFeedProps {
   items: ActivityItem[]
+  onTaskClick?: (taskId: string) => void
 }
 
-export function ActivityFeed({ items }: ActivityFeedProps) {
+export function ActivityFeed({ items, onTaskClick }: ActivityFeedProps) {
   const visible = items.slice(0, 8)
 
   return (
@@ -69,7 +72,17 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground truncate">
                     <span className="font-medium">{item.entityName}</span>
-                    {ENTITY_ROUTES[item.entityType] && (
+                    {item.entityType === "task" && onTaskClick ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onTaskClick(item.entityId)}
+                        className="inline-flex ml-1 size-auto p-0 align-middle"
+                        aria-label={`Open task ${item.entityName}`}
+                      >
+                        <ExternalLink className="size-3" />
+                      </Button>
+                    ) : ENTITY_ROUTES[item.entityType] ? (
                       <Link
                         href={ENTITY_ROUTES[item.entityType]!}
                         className="inline-flex ml-1 text-muted-foreground hover:text-foreground transition-colors align-middle"
@@ -77,7 +90,7 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
                       >
                         <ExternalLink className="size-3" />
                       </Link>
-                    )}
+                    ) : null}
                     <span className="text-muted-foreground"> {getActionLabel(item.action).toLowerCase()}</span>
                   </p>
                 </div>

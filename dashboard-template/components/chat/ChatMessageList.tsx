@@ -5,15 +5,23 @@ import { useRef, useEffect, type ReactNode } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { BookmarkPlus, CheckCircle2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import ThinkingIndicator from "@/components/chat/ThinkingIndicator"
 import MarkdownMessage from "@/components/chat/MarkdownMessage"
+import ChatAttachmentDisplay from "@/components/chat/ChatAttachmentDisplay"
 import { stripMetaBlocks } from "@/lib/chat-prompts"
 import { cn } from "@/lib/utils"
 
-import type { ChatMessage } from "@/types/index"
+import type { ChatMessage, ChatAttachment } from "@/types/index"
+
+const PLACEHOLDER_RE = /^\[(\d+ )?file\(s\) attached\]$/
+
+function isPlaceholderText(content: string, attachments?: ChatAttachment[]): boolean {
+  return Boolean(attachments?.length && PLACEHOLDER_RE.test(content.trim()))
+}
 
 interface ChatMessageListProps {
   messages: ChatMessage[]
@@ -70,6 +78,9 @@ export default function ChatMessageList({ messages, isStreaming, onSaveToMemory 
               </Avatar>
             )}
             <div className="group relative max-w-[80%]">
+              {msg.role === "assistant" && msg.metadata?.agentName && (
+                <span className="block mb-1 text-[10px] text-muted-foreground/70 font-medium tracking-wide uppercase">{msg.metadata.agentName}</span>
+              )}
               <div
                 className={cn(
                   "px-4 py-3 text-sm",
@@ -91,18 +102,25 @@ export default function ChatMessageList({ messages, isStreaming, onSaveToMemory 
                     )}
                   </>
                 ) : (
-                  highlightMentions(msg.content || "")
+                  <>
+                    {msg.attachments?.length && (
+                      <ChatAttachmentDisplay attachments={msg.attachments} isUser />
+                    )}
+                    {isPlaceholderText(msg.content, msg.attachments) ? null : highlightMentions(msg.content || "")}
+                  </>
                 )}
               </div>
               {msg.role === "assistant" && msg.content && !msg.isStreaming && onSaveToMemory && (
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => onSaveToMemory(msg.content)}
-                  className="absolute -top-2 -right-2 p-1 rounded-md bg-card border border-border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                   aria-label="Save to memory"
                   title="Save to memory"
                 >
                   <BookmarkPlus size={12} className="text-muted-foreground" />
-                </button>
+                </Button>
               )}
               {msg.role === "assistant" && !msg.isStreaming && msg.metadata?.brief_saved && (
                 <Link href="/briefs" className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs hover:underline w-fit">

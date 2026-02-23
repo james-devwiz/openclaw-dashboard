@@ -3,7 +3,16 @@
 import { useEffect, useRef } from "react"
 
 import { getChatHistoryApi } from "@/services/chat.service"
-import type { ChatMessage, ChatTopic } from "@/types/index"
+import type { ChatMessage, ChatTopic, ChatAttachment } from "@/types/index"
+
+function parseAttachments(json?: string): ChatAttachment[] | undefined {
+  if (!json) return undefined
+  try {
+    const parsed = JSON.parse(json)
+    if (!Array.isArray(parsed) || parsed.length === 0) return undefined
+    return parsed.map((a: { name: string; type: string }) => ({ name: a.name, type: a.type, dataUrl: "" }))
+  } catch { return undefined }
+}
 
 const POLL_INTERVAL_MS = 2000
 const MAX_POLL_DURATION_MS = 60000
@@ -53,6 +62,7 @@ export function useMessagePolling(
             topic: topicRef.current,
             sessionId: r.sessionId,
             status: "sent" as const,
+            ...(r.attachments ? { attachments: parseAttachments(r.attachments) } : {}),
           }))
           callbackRef.current(sid, msgs)
           clearInterval(interval)

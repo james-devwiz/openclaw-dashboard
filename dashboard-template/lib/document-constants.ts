@@ -26,3 +26,10 @@ export const CATEGORY_SHORT_LABELS: Record<string, string> = {
   "Template": "Template",
   "Research": "Research",
 }
+
+export const FOLDER_COLORS: Record<string, { bg: string; text: string }> = {
+  general: { bg: "bg-gray-100 dark:bg-gray-800/50", text: "text-gray-600 dark:text-gray-400" },
+  system: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-300" },
+  project: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300" },
+  agent: { bg: "bg-violet-100 dark:bg-violet-900/30", text: "text-violet-700 dark:text-violet-300" },
+}

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-client"
 import type { ChatMessageRow, ChatSession } from "@/types/index"
 
 const HISTORY_URL = "/api/chat/history"
@@ -10,30 +11,23 @@ export async function getChatHistoryApi(
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<ChatMessageRow[]> {
-  const res = await fetch(`${HISTORY_URL}?sessionId=${encodeURIComponent(sessionId)}`, { signal })
+  const res = await apiFetch(`${HISTORY_URL}?sessionId=${encodeURIComponent(sessionId)}`, { signal })
   if (!res.ok) throw new Error(`Chat history fetch failed: ${res.status}`)
   const data = await res.json()
   return data.messages || []
 }
 
-export async function clearChatHistoryApi(sessionId: string): Promise<void> {
-  const res = await fetch(`${HISTORY_URL}?sessionId=${encodeURIComponent(sessionId)}`, {
-    method: "DELETE",
-  })
-  if (!res.ok) throw new Error("Failed to clear chat history")
-}
-
 // --- Sessions ---
 
 export async function getSessionsApi(topic: string): Promise<ChatSession[]> {
-  const res = await fetch(`${SESSIONS_URL}?topic=${encodeURIComponent(topic)}`)
+  const res = await apiFetch(`${SESSIONS_URL}?topic=${encodeURIComponent(topic)}`)
   if (!res.ok) throw new Error(`Sessions fetch failed: ${res.status}`)
   const data = await res.json()
   return data.sessions || []
 }
 
 export async function createSessionApi(topic: string): Promise<ChatSession> {
-  const res = await fetch(SESSIONS_URL, {
+  const res = await apiFetch(SESSIONS_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topic }),
@@ -44,7 +38,7 @@ export async function createSessionApi(topic: string): Promise<ChatSession> {
 }
 
 export async function renameSessionApi(sessionId: string, title: string): Promise<void> {
-  const res = await fetch(`${SESSIONS_URL}/${sessionId}`, {
+  const res = await apiFetch(`${SESSIONS_URL}/${sessionId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
@@ -53,7 +47,7 @@ export async function renameSessionApi(sessionId: string, title: string): Promis
 }
 
 export async function deleteSessionApi(sessionId: string): Promise<void> {
-  const res = await fetch(`${SESSIONS_URL}/${sessionId}`, {
+  const res = await apiFetch(`${SESSIONS_URL}/${sessionId}`, {
     method: "DELETE",
   })
   if (!res.ok) throw new Error("Failed to delete session")
@@ -62,13 +56,13 @@ export async function deleteSessionApi(sessionId: string): Promise<void> {
 // --- Unread counts ---
 
 export async function getUnreadCountsApi(): Promise<{ counts: Record<string, number>; total: number }> {
-  const res = await fetch(UNREAD_URL)
+  const res = await apiFetch(UNREAD_URL)
   if (!res.ok) throw new Error("Failed to fetch unread counts")
   return res.json()
 }
 
 export async function markTopicReadApi(topic: string): Promise<void> {
-  await fetch(UNREAD_URL, {
+  await apiFetch(UNREAD_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topic }),

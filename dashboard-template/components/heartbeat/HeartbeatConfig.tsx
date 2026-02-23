@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import { Settings, Play, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { apiFetch } from "@/lib/api-client"
 import { useGateway } from "@/hooks/useGateway"
 
 export function HeartbeatConfig({ onTriggered }: { onTriggered?: () => void }) {
@@ -22,7 +24,7 @@ export function HeartbeatConfig({ onTriggered }: { onTriggered?: () => void }) {
     setTriggering(true)
     setTriggerResult(null)
     try {
-      const res = await fetch("/api/heartbeats", {
+      const res = await apiFetch("/api/heartbeats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "trigger" }),
@@ -53,14 +55,11 @@ export function HeartbeatConfig({ onTriggered }: { onTriggered?: () => void }) {
           {triggerResult && (
             <span className="text-xs text-muted-foreground">{triggerResult}</span>
           )}
-          <button
+          <Button
+            size="sm"
             onClick={handleTrigger}
             disabled={triggering}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-              "bg-emerald-600 text-white hover:bg-emerald-700",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
+            className="bg-emerald-600 hover:bg-emerald-700"
             aria-label="Trigger heartbeat manually"
           >
             {triggering ? (
@@ -69,7 +68,7 @@ export function HeartbeatConfig({ onTriggered }: { onTriggered?: () => void }) {
               <Play size={12} aria-hidden="true" />
             )}
             {triggering ? "Running..." : "Run Now"}
-          </button>
+          </Button>
         </div>
       </div>
       <div className="flex flex-wrap gap-4">

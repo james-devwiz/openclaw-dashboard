@@ -4,6 +4,8 @@ import { getTasks } from "@/lib/db-tasks"
 import { getContent } from "@/lib/db-content"
 import { getApprovals } from "@/lib/db-approvals"
 import { getDocuments } from "@/lib/db-documents"
+import { searchLeads } from "@/lib/db-leads"
+import { searchPosts } from "@/lib/db-posts"
 import { searchWorkspaceFiles } from "@/lib/workspace"
 import type { SearchResult } from "@/types"
 
@@ -32,10 +34,10 @@ export async function GET(request: NextRequest) {
   }
 
   const content = getContent().filter(
-    (c) => c.title.toLowerCase().includes(query) || c.topic.toLowerCase().includes(query)
+    (c) => c.contentType === "Idea" && (c.title.toLowerCase().includes(query) || c.topic.toLowerCase().includes(query))
   )
   for (const c of content) {
-    results.push({ type: "content", id: c.id, title: c.title, subtitle: `${c.contentType} — ${c.stage}`, href: "/content" })
+    results.push({ type: "content", id: c.id, title: c.title, subtitle: `${c.contentType} — ${c.stage}`, href: "/studio" })
   }
 
   const approvals = getApprovals().filter(
@@ -47,7 +49,18 @@ export async function GET(request: NextRequest) {
 
   const docs = getDocuments({ search: query, limit: 5 })
   for (const d of docs) {
-    results.push({ type: "document", id: d.id, title: d.title, subtitle: `${d.category}`, href: "/documents" })
+    const loc = d.projectId ? "Project" : d.agentId ? "Agent" : d.folder || "general"
+    results.push({ type: "document", id: d.id, title: d.title, subtitle: `${d.category} — ${loc}`, href: "/documents" })
+  }
+
+  const matchedPosts = searchPosts(query, 5)
+  for (const p of matchedPosts) {
+    results.push({ type: "content" as SearchResult["type"], id: p.id, title: p.title, subtitle: `${p.format} — ${p.stage}`, href: "/studio" })
+  }
+
+  const matchedLeads = searchLeads(query, 5)
+  for (const l of matchedLeads) {
+    results.push({ type: "lead" as SearchResult["type"], id: l.id, title: l.companyName, subtitle: `${l.contactName} — ${l.status}`, href: "/leads" })
   }
 
   try {
@@ -55,8 +68,9 @@ export async function GET(request: NextRequest) {
     for (const m of memoryItems.slice(0, 5)) {
       results.push({ type: "memory", id: m.id, title: m.title, subtitle: m.category, href: "/memory" })
     }
-  } catch {
+  } catch (error) {
     // workspace may not exist locally
+    console.error("Workspace search failed:", error)
   }
 
   return NextResponse.json({ results: results.slice(0, 20) })

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 
-import { getApprovalsApi, respondToApprovalApi, getPendingCountApi } from "@/services/approval.service"
+import { getApprovalsApi, respondToApprovalApi, reviseApprovalApi, getPendingCountApi } from "@/services/approval.service"
 
 import type { ApprovalItem, ApprovalStatus } from "@/types/index"
 
@@ -11,6 +11,7 @@ export function useApprovals() {
   const [pendingCount, setPendingCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [revisingId, setRevisingId] = useState<string | null>(null)
 
   const fetchApprovals = useCallback(async () => {
     try {
@@ -40,6 +41,19 @@ export function useApprovals() {
     }
   }, [fetchApprovals, fetchCount])
 
+  const revise = useCallback(async (id: string, feedback: string) => {
+    setRevisingId(id)
+    try {
+      const updated = await reviseApprovalApi(id, feedback)
+      setItems((prev) => prev.map((i) => (i.id === id ? updated : i)))
+    } catch (err) {
+      console.error("Approval revision failed:", err)
+      setError(err instanceof Error ? err.message : "Revision failed")
+    } finally {
+      setRevisingId(null)
+    }
+  }, [])
+
   useEffect(() => {
     fetchApprovals()
     fetchCount()
@@ -47,5 +61,5 @@ export function useApprovals() {
     return () => clearInterval(interval)
   }, [fetchApprovals, fetchCount])
 
-  return { items, pendingCount, loading, error, respond, refetch: fetchApprovals }
+  return { items, pendingCount, loading, error, respond, revise, revisingId, refetch: fetchApprovals }
 }

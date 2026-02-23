@@ -4,6 +4,9 @@ export type ApprovalCategory =
   | "Content Review"
   | "Task Confirmation"
   | "Permission Request"
+  | "LinkedIn"
+  | "Lead Review"
+  | "Outreach Review"
 
 export type ApprovalStatus = "Pending" | "Approved" | "Rejected" | "Deferred" | "Responded"
 export type ApprovalPriority = "Urgent" | "High" | "Medium" | "Low"
@@ -14,6 +17,8 @@ export type ApprovalRequester =
   | "Overnight Work"
   | "Content Pipeline"
   | "Task Generation"
+  | "LinkedIn Agent"
+  | "Lead Pipeline"
   | "Manual"
 
 export interface ApprovalItem {
@@ -28,6 +33,8 @@ export interface ApprovalItem {
   relatedGoalId?: string
   relatedTaskId?: string
   relatedTaskName?: string
+  relatedLeadId?: string
+  relatedLeadName?: string
   requestedBy: ApprovalRequester
   createdAt: string
   updatedAt: string

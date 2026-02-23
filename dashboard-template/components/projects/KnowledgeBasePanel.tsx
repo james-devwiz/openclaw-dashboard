@@ -2,6 +2,7 @@
 
 import { Plus, X, FileText, AlertTriangle } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { formatRelativeTime } from "@/lib/utils"
 import type { ProjectFile } from "@/types/index"
 
@@ -21,13 +22,10 @@ export default function KnowledgeBasePanel({ files, onAddFiles, onRemoveFile }: 
             File contents are injected into every chat message as context.
           </p>
         </div>
-        <button
-          onClick={onAddFiles}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-        >
+        <Button size="sm" onClick={onAddFiles}>
           <Plus size={14} />
           Add Files
-        </button>
+        </Button>
       </div>
 
       {files.length === 0 ? (
@@ -59,13 +57,15 @@ export default function KnowledgeBasePanel({ files, onAddFiles, onRemoveFile }: 
               <span className="text-xs text-muted-foreground shrink-0">
                 {formatRelativeTime(file.addedAt)}
               </span>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => onRemoveFile(file.relativePath)}
-                className="p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity"
+                className="opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity"
                 aria-label={`Remove ${file.relativePath}`}
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

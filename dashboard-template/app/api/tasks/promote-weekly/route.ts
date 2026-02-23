@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server"
 import { getDb } from "@/lib/db"
 import { logActivity } from "@/lib/activity-logger"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 export async function POST() {
   const db = getDb()
 
-  // Compute next week's Sunday-to-Sunday bounds in local timezone
+  // Compute next week's Sunday-to-Sunday bounds (AEST = UTC+10)
   const now = new Date()
-  const local = new Date(now.getTime() + SITE_CONFIG.utcOffsetHours * 60 * 60 * 1000)
-  const day = local.getUTCDay()
+  const aest = new Date(now.getTime() + 10 * 60 * 60 * 1000)
+  const day = aest.getUTCDay()
 
   // Next week starts on the coming Sunday
-  const nextSunday = new Date(local)
-  nextSunday.setUTCDate(local.getUTCDate() + (7 - day))
+  const nextSunday = new Date(aest)
+  nextSunday.setUTCDate(aest.getUTCDate() + (7 - day))
   nextSunday.setUTCHours(0, 0, 0, 0)
   const nextSundayEnd = new Date(nextSunday)
   nextSundayEnd.setUTCDate(nextSunday.getUTCDate() + 7)
@@ -28,10 +27,10 @@ export async function POST() {
 
   const updatedAt = now.toISOString()
   for (const task of tasks) {
-    db.prepare("UPDATE tasks SET status = 'To Do This Week', updatedAt = ? WHERE id = ?").run(updatedAt, task.id)
+    db.prepare("UPDATE tasks SET status = 'To Be Scheduled', assignee = 'AI Assistant', updatedAt = ? WHERE id = ?").run(updatedAt, task.id)
     logActivity({
       entityType: "task", entityId: task.id, entityName: task.name,
-      action: "status_changed", detail: "Status: Backlog → To Do This Week (weekly promotion)",
+      action: "status_changed", detail: "Status: Backlog → To Be Scheduled (weekly promotion)",
       source: "cron",
     })
   }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { X, Pencil, Trash2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import DocumentViewContent from "./DocumentViewContent"
 import DocumentEditForm from "./DocumentEditForm"
 
@@ -11,7 +12,7 @@ import type { Document } from "@/types"
 interface DocumentSlideOverProps {
   doc: Document | null
   onClose: () => void
-  onUpdate: (id: string, updates: Partial<Pick<Document, "category" | "title" | "content" | "tags">>) => void
+  onUpdate: (id: string, updates: Partial<Pick<Document, "category" | "title" | "content" | "tags" | "folder" | "projectId" | "agentId">>) => void
   onDelete: (id: string) => void
 }
 
@@ -30,7 +31,7 @@ export default function DocumentSlideOver({ doc, onClose, onUpdate, onDelete }: 
 
   if (!doc) return null
 
-  const handleSave = (updates: Partial<Pick<Document, "category" | "title" | "content" | "tags">>) => {
+  const handleSave = (updates: Partial<Pick<Document, "category" | "title" | "content" | "tags" | "folder" | "projectId" | "agentId">>) => {
     onUpdate(doc.id, updates)
     setEditing(false)
   }
@@ -51,20 +52,23 @@ export default function DocumentSlideOver({ doc, onClose, onUpdate, onDelete }: 
           <div className="flex items-center gap-1 shrink-0 ml-2">
             {!editing && (
               <>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setEditing(true)}
-                  className="p-2 rounded-lg hover:bg-accent transition-colors"
                   aria-label="Edit document"
                 >
                   <Pencil size={14} />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleDelete}
-                  className="p-2 rounded-lg hover:bg-accent transition-colors text-red-500"
+                  className="text-red-500"
                   aria-label="Delete document"
                 >
                   <Trash2 size={14} />
-                </button>
+                </Button>
               </>
             )}
             <button

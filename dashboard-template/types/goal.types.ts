@@ -1,7 +1,5 @@
-import { SITE_CONFIG } from "@/lib/site-config"
-
 export type GoalStatus = "Active" | "Achieved" | "Paused" | "Abandoned"
-export type GoalCategory = (typeof SITE_CONFIG.goalCategories)[number]
+export type GoalCategory = "Personal" | "System" | "Business A" | "Business B" | "Business C"
 
 export interface Goal {
   id: string

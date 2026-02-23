@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 
-import { ALL_STATUSES, ALL_CATEGORIES } from "@/lib/task-constants"
+import { Button } from "@/components/ui/button"
+import { ALL_STATUSES, ALL_CATEGORIES, ALL_COMPLEXITIES, ALL_ASSIGNEES } from "@/lib/task-constants"
 
-import type { TaskStatus, TaskCategory, TaskPriority } from "@/types/index"
+import type { TaskStatus, TaskCategory, TaskPriority, TaskComplexity, TaskAssignee } from "@/types/index"
 
 interface CreateTaskManualFormProps {
   onSubmit: (input: {
     name: string; description?: string; status?: TaskStatus
     priority?: TaskPriority; category?: TaskCategory; dueDate?: string
+    complexity?: TaskComplexity; estimatedMinutes?: number; assignee?: TaskAssignee
   }) => Promise<void>
 }
 
@@ -19,6 +21,9 @@ export default function CreateTaskManualForm({ onSubmit }: CreateTaskManualFormP
   const [priority, setPriority] = useState<TaskPriority>("Medium")
   const [category, setCategory] = useState<TaskCategory>("Personal")
   const [status, setStatus] = useState<TaskStatus>("Backlog")
+  const [complexity, setComplexity] = useState<TaskComplexity>("Moderate")
+  const [estimatedMinutes, setEstimatedMinutes] = useState("")
+  const [assignee, setAssignee] = useState<TaskAssignee | "">("")
   const [dueDate, setDueDate] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -27,8 +32,12 @@ export default function CreateTaskManualForm({ onSubmit }: CreateTaskManualFormP
     if (!name.trim() || submitting) return
     setSubmitting(true)
     try {
-      await onSubmit({ name: name.trim(), description: description || undefined, status, priority, category, dueDate: dueDate || undefined })
-      setName(""); setDescription(""); setDueDate("")
+      await onSubmit({
+        name: name.trim(), description: description || undefined, status, priority, category,
+        dueDate: dueDate || undefined, complexity, estimatedMinutes: parseInt(estimatedMinutes) || undefined,
+        assignee: assignee || undefined,
+      })
+      setName(""); setDescription(""); setDueDate(""); setEstimatedMinutes("")
     } finally {
       setSubmitting(false)
     }
@@ -69,15 +78,34 @@ export default function CreateTaskManualForm({ onSubmit }: CreateTaskManualFormP
           </select>
         </div>
         <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Assignee</label>
+          <select value={assignee} onChange={(e) => setAssignee(e.target.value as TaskAssignee | "")}
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Assignee">
+            <option value="">Unassigned</option>
+            {ALL_ASSIGNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Complexity</label>
+          <select value={complexity} onChange={(e) => setComplexity(e.target.value as TaskComplexity)}
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Complexity">
+            {ALL_COMPLEXITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Est. Minutes</label>
+          <input type="number" min={0} value={estimatedMinutes} onChange={(e) => setEstimatedMinutes(e.target.value)} placeholder="30"
+            className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Estimated minutes" />
+        </div>
+        <div>
           <label className="text-xs text-muted-foreground mb-1 block">Due Date</label>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
             className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30" aria-label="Due date" />
         </div>
       </div>
-      <button type="submit" disabled={!name.trim() || submitting}
-        className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      <Button type="submit" disabled={!name.trim() || submitting} className="w-full">
         {submitting ? "Creating..." : "Create Task"}
-      </button>
+      </Button>
     </form>
   )
 }

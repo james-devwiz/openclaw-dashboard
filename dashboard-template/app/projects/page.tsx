@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Plus, Loader2, FolderOpen } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import PageHeader from "@/components/layout/PageHeader"
 import ProjectCard from "@/components/projects/ProjectCard"
 import CreateProjectDialog from "@/components/projects/CreateProjectDialog"
@@ -18,13 +19,10 @@ export default function ProjectsPage() {
         title="Projects"
         subtitle="Scoped AI workspaces with persistent instructions and knowledge"
         actions={
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
+          <Button onClick={() => setShowCreate(true)}>
             <Plus size={16} />
             New Project
-          </button>
+          </Button>
         }
       />
 
@@ -39,13 +37,10 @@ export default function ProjectsPage() {
           <p className="text-sm text-muted-foreground mb-6 max-w-sm">
             Create a project to give your AI persistent instructions and a scoped knowledge base.
           </p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
+          <Button onClick={() => setShowCreate(true)}>
             <Plus size={16} />
             Create your first project
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

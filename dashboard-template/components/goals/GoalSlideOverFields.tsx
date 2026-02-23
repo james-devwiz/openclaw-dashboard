@@ -3,11 +3,11 @@
 import { useState, useRef, useEffect } from "react"
 
 import ProgressRing from "@/components/ui/ProgressRing"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import type { Goal, GoalStatus, GoalCategory } from "@/types/index"
 
 const GOAL_STATUSES: GoalStatus[] = ["Active", "Achieved", "Paused", "Abandoned"]
+const GOAL_CATEGORIES: GoalCategory[] = ["Personal", "System", "Business A", "Business B", "Business C"]
 
 interface GoalSlideOverFieldsProps {
   goal: Goal
@@ -81,7 +81,7 @@ export default function GoalSlideOverFields({ goal, onUpdate }: GoalSlideOverFie
             className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             aria-label="Goal category"
           >
-            {[...SITE_CONFIG.goalCategories].map((c) => <option key={c} value={c}>{c}</option>)}
+            {GOAL_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 

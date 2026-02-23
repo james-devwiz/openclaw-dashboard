@@ -43,21 +43,21 @@ export default function TaskRelationsSection({ taskId, goalId, approvalId, onTas
   useEffect(() => {
     async function fetchRelations() {
       try {
-        const [goalsRes, tasksRes, approvalRes, contentRes] = await Promise.all([
+        const [goalsRes, tasksRes, approvalRes, postsRes] = await Promise.all([
           fetch(`/api/goals`),
           fetch(`/api/tasks?goalId=${encodeURIComponent(goalId)}`),
           approvalId ? fetch(`/api/approvals?taskId=${encodeURIComponent(taskId)}`) : null,
-          fetch(`/api/content`),
+          fetch(`/api/studio/posts`),
         ])
         const goalsData = goalsRes.ok ? await goalsRes.json() : { goals: [] }
         const tasksData = tasksRes.ok ? await tasksRes.json() : { tasks: [] }
         const approvalData = approvalRes?.ok ? await approvalRes.json() : { item: null }
-        const contentData = contentRes.ok ? await contentRes.json() : { items: [] }
+        const postsData = postsRes.ok ? await postsRes.json() : { posts: [] }
 
         const goal = goalsData.goals?.find((g: { id: string }) => g.id === goalId)
         const tasks = tasksData.tasks || []
         const siblings = tasks.filter((t: Task) => t.id !== taskId)
-        const linkedContent = (contentData.items || []).filter((c: { goalId: string }) => c.goalId === goalId)
+        const linkedContent = (postsData.posts || []).filter((p: { goalId: string }) => p.goalId === goalId)
 
         setAllTasks(tasks)
         setData({

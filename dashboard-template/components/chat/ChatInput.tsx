@@ -3,12 +3,12 @@
 import { useState, useRef } from "react"
 import { Send, Loader2, Paperclip, X, Map } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import MentionAutocomplete from "@/components/chat/MentionAutocomplete"
 import ResearchModeButtons, { type ResearchMode } from "@/components/chat/ResearchModeButtons"
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea"
 import { useMentionAutocomplete } from "@/hooks/useMentionAutocomplete"
 import { cn } from "@/lib/utils"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import type { ChatTopic, ChatAttachment } from "@/types/index"
 
@@ -71,10 +71,9 @@ export default function ChatInput({
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value
-    setInput(value)
+    setInput(e.target.value)
     adjustHeight()
-    mention.handleInputChange(value, e.target.selectionStart)
+    mention.handleInputChange(e.target.value, e.target.selectionStart)
   }
 
   const handleMentionSelect = (index: number) => {
@@ -82,10 +81,7 @@ export default function ChatInput({
     const { newInput, newCursor } = mention.selectItem(index, input, cursorPos)
     setInput(newInput)
     textareaRef.current?.focus()
-    requestAnimationFrame(() => {
-      textareaRef.current?.setSelectionRange(newCursor, newCursor)
-      adjustHeight()
-    })
+    requestAnimationFrame(() => { textareaRef.current?.setSelectionRange(newCursor, newCursor); adjustHeight() })
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,13 +89,7 @@ export default function ChatInput({
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) continue
       const reader = new FileReader()
-      reader.onload = () => {
-        setAttachments((prev) => [...prev, {
-          name: file.name,
-          type: file.type,
-          dataUrl: reader.result as string,
-        }])
-      }
+      reader.onload = () => setAttachments((prev) => [...prev, { name: file.name, type: file.type, dataUrl: reader.result as string }])
       reader.readAsDataURL(file)
     }
     if (fileInputRef.current) fileInputRef.current.value = ""
@@ -136,7 +126,7 @@ export default function ChatInput({
             value={input}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder={`Message ${SITE_CONFIG.aiName}... (type @ for mentions)`}
+            placeholder="Message AI Assistant... (type @ for mentions)"
             disabled={isStreaming}
             rows={1}
             className="w-full resize-none bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
@@ -174,14 +164,16 @@ export default function ChatInput({
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isStreaming}
-                className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                className="rounded-xl text-muted-foreground"
                 aria-label="Attach file"
               >
                 <Paperclip size={16} />
-              </button>
+              </Button>
               <button
                 onClick={handleSend}
                 disabled={(!input.trim() && attachments.length === 0) || isStreaming}

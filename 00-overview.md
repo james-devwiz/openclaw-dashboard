@@ -16,7 +16,7 @@ By the end of this plan, you'll have:
 - **Telegram as your mobile command centre** with organised topic threads
 - **Heartbeat monitoring** that checks for urgent items every 30 minutes during active hours, with pre-meeting briefs for upcoming external meetings, post-meeting reports with Fathom transcript integration, and off-hours cron checks overnight
 - **11+ automated cron jobs** including morning briefs (dual calendar, Slack, Teams, Reclaim), evening summaries (Fathom, task progress), weekly reviews, auto-updates, and overnight autonomous work — all with Command Centre API integration and Telegram topic routing
-- A **custom Command Centre dashboard** with 15+ views (Overview, Chat, Goals & Tasks, Content Centre, Approvals, Activity, Memory, Briefs & Reports, Cron Status, Documents, Heartbeat, Architecture, Projects, MCP Management), Cmd+K global search, and real-time health monitoring
+- A **custom Command Centre dashboard** with 15+ views (Overview, Chat, Goals & Tasks, Approvals, Activity, Memory, Briefs & Reports, Cron Status, Documents, Heartbeat, Architecture, Projects, MCP Management), Cmd+K global search, and real-time health monitoring
 - **MCP server management** — add, test, and monitor Model Context Protocol servers that extend your AI with external tools (web scraping, databases, SaaS APIs)
 - **Living files** — every piece of research saved as searchable markdown
 - **Business meta-analysis** — a weekly "AI Council" that analyses your business from multiple expert perspectives
@@ -79,21 +79,21 @@ This plan builds on top of that foundation.
 | **4** | `04-intelligence-memory.md` | Model routing strategy and semantic memory search |
 | **5** | `05-automation.md` | Heartbeat monitoring + 11 cron jobs for full automation |
 | **6** | `06-integrations.md` | Google Workspace, email, meeting transcripts, web search |
-| **7** | `07-dashboard-architecture.md` | Next.js project setup, design system, global styling, layout |
-| **8** | `08-dashboard-template.md` | *Optional:* Pre-built template — edit one config file instead of building from scratch |
-| **9** | `09-dashboard-data-layer.md` | SQLite schema, API routes, services, types, gateway client |
-| **10** | `10-dashboard-overview-cron-brief.md` | Overview, Cron Status, and Briefs & Reports pages |
-| **11** | `11-dashboard-chat.md` | Chat with SSE streaming and 7-topic routing |
-| **12** | `12-dashboard-goals-tasks-content.md` | Goals grid, Kanban board, Content pipeline |
-| **13** | `13-dashboard-approvals-memory-activity-search.md` | Approvals queue, Memory browser, Activity timeline, Cmd+K search |
-| **14** | `14-dashboard-projects.md` | AI workspaces with scoped instructions, knowledge base, project-scoped chat |
-| **15** | `15-dashboard-mcp.md` | MCP server management, tools catalogue, project bindings, observability |
-| **16** | `16-dashboard-skills.md` | Skill enable/disable toggle, install from SKILL.md frontmatter, Models tab with provider/role badges and enable/disable toggles |
-| **17** | `17-dashboard-deployment.md` | VPS deployment, systemd service, SSH tunnel, security |
+| **7** | `07-architecture.md` | Next.js project setup, design system, global styling, layout |
+| **8** | `08-template.md` | *Optional:* Pre-built template — edit one config file instead of building from scratch |
+| **9** | `09-data-layer.md` | SQLite schema, API routes, services, types, gateway client |
+| **10** | `10-overview-cron-brief.md` | Overview, Cron Status, and Briefs & Reports pages |
+| **11** | `11-chat.md` | Chat with SSE streaming and 7-topic routing |
+| **12** | `12-goals-tasks.md` | Goals grid, Kanban board, Recurring tasks |
+| **13** | `13-approvals-memory-activity-search.md` | Approvals queue, Memory browser, Activity timeline, Cmd+K search |
+| **14** | `14-projects.md` | AI workspaces with scoped instructions, knowledge base, project-scoped chat |
+| **15** | `15-mcp.md` | MCP server management, tools catalogue, project bindings, observability |
+| **16** | `16-skills.md` | Skill enable/disable toggle, install from SKILL.md frontmatter, Models tab with provider/role badges and enable/disable toggles |
+| **17** | `17-deployment.md` | VPS deployment, systemd service, SSH tunnel, security |
 | **18** | `18-living-files-community.md` | Living Files philosophy, community notes, full verification checklist |
 | **19** | `19-custom-skills.md` | 6 custom managed skills: PDF, DOCX, XLSX, PPTX, MCP-Builder, Webapp-Testing |
 | **20** | `20-security-hardening.md` | API auth, security headers, rate limiting, exec hardening, DB backups |
-| **21** | `21-bonus-features.md` | *Optional:* Documents, AI-vetted Ideas, Content Studio (multi-platform publishing), LinkedIn Intelligence (CRM + WAMP scoring), Lead Generation (9-stage pipeline + Apollo enrichment) |
+| **21** | `21-bonus-features.md` | *Optional:* Documents, AI-vetted Ideas, Content Studio (multi-platform publishing with Ideas tab), LinkedIn Intelligence (CRM + WAMP scoring), Lead Generation (9-stage pipeline + Apollo enrichment) |
 
 ---
 

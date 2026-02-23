@@ -3,9 +3,10 @@
 import { motion } from "framer-motion"
 import {
   MessageSquare, FileText, BarChart3, Search,
-  ClipboardList, Sparkles, Brain, Trash2, Plus, History,
+  ClipboardList, GraduationCap, Wrench, Brain, Plus, History,
 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { TOPIC_SYSTEM_PROMPTS } from "@/lib/chat-prompts"
 import type { ChatTopic, ChatTopicConfig } from "@/types/index"
@@ -16,13 +17,14 @@ const TOPICS: ChatTopicConfig[] = [
   { id: "reports", label: "Reports", description: "Automated reports from cron jobs: weekly reviews, cost reports, business meta-analysis", systemPrompt: TOPIC_SYSTEM_PROMPTS.reports, quickActions: ["Run cost report", "Weekly review summary"] },
   { id: "research", label: "Research", description: "Web search results, saved articles, overnight research findings", systemPrompt: TOPIC_SYSTEM_PROMPTS.research, quickActions: ["Summarise recent research", "What's trending?"] },
   { id: "tasks", label: "Tasks & Goals", description: "To-do tracking, goal setting, progress updates", systemPrompt: TOPIC_SYSTEM_PROMPTS.tasks, quickActions: ["Show active tasks", "What's blocked?"] },
-  { id: "self-improvement", label: "Self-Improvement", description: "AI's own development notes, workspace file improvement suggestions", systemPrompt: TOPIC_SYSTEM_PROMPTS["self-improvement"], quickActions: ["Review workspace files", "Suggest improvements"] },
+  { id: "coaching", label: "Coaching", description: "Accountability, business coaching, marketing coaching, habit tracking", systemPrompt: TOPIC_SYSTEM_PROMPTS.coaching, quickActions: ["Weekly accountability check-in", "Review my goals progress"] },
+  { id: "system-improvement", label: "System Improvement", description: "AI system improvements, workspace optimisation, cron tuning, prompt refinement", systemPrompt: TOPIC_SYSTEM_PROMPTS["system-improvement"], quickActions: ["Review system health", "Suggest cron improvements"] },
   { id: "memory", label: "Memory", description: "Memory system dumps, fact logs, context updates, memory maintenance logs", systemPrompt: TOPIC_SYSTEM_PROMPTS.memory, quickActions: ["What's in memory?", "Recent memory updates"] },
 ]
 
 export const TOPIC_ICONS: Record<ChatTopic, typeof MessageSquare> = {
   general: MessageSquare, briefs: FileText, reports: BarChart3, research: Search,
-  tasks: ClipboardList, "self-improvement": Sparkles, memory: Brain,
+  tasks: ClipboardList, coaching: GraduationCap, "system-improvement": Wrench, memory: Brain,
 }
 
 export { TOPICS }
@@ -30,8 +32,6 @@ export { TOPICS }
 interface ChatTopicSelectorProps {
   activeTopic: ChatTopic
   onTopicChange: (topic: ChatTopic) => void
-  hasMessages: boolean
-  onClear: () => void
   onNewChat: () => void
   onToggleHistory: () => void
   isHistoryOpen: boolean
@@ -40,7 +40,7 @@ interface ChatTopicSelectorProps {
 }
 
 export default function ChatTopicSelector({
-  activeTopic, onTopicChange, hasMessages, onClear,
+  activeTopic, onTopicChange,
   onNewChat, onToggleHistory, isHistoryOpen, actionSlot, unreadCounts,
 }: ChatTopicSelectorProps) {
   return (
@@ -81,13 +81,14 @@ export default function ChatTopicSelector({
       </div>
       <div className="flex items-center gap-1">
         {actionSlot}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onNewChat}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           aria-label="New chat"
         >
           <Plus size={12} /> New
-        </button>
+        </Button>
         <button
           onClick={onToggleHistory}
           className={cn(
@@ -100,15 +101,6 @@ export default function ChatTopicSelector({
         >
           <History size={12} /> History
         </button>
-        {hasMessages && (
-          <button
-            onClick={onClear}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Clear messages"
-          >
-            <Trash2 size={12} /> Clear
-          </button>
-        )}
       </div>
     </div>
   )

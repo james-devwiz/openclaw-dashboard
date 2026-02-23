@@ -2,7 +2,7 @@
 
 import { execFile } from "child_process"
 import { promisify } from "util"
-import { writeFile, mkdir } from "fs/promises"
+import { writeFile, mkdir, chmod } from "fs/promises"
 import { dirname } from "path"
 
 import type { McpServer } from "@/types/mcp.types"
@@ -22,7 +22,8 @@ export async function mcporterListServers(): Promise<Array<{ name: string; statu
   try {
     const { stdout } = await exec(BIN, ["list", "--json"], { timeout: 10000 })
     return JSON.parse(stdout)
-  } catch {
+  } catch (error) {
+    console.error("mcporter list servers failed:", error)
     return []
   }
 }
@@ -39,7 +40,8 @@ export async function mcporterListTools(server: string): Promise<McpToolSchema[]
       description: String(t.description || ""),
       inputSchema: typeof t.inputSchema === "string" ? t.inputSchema : JSON.stringify(t.inputSchema || {}),
     }))
-  } catch {
+  } catch (error) {
+    console.error(`mcporter list tools for ${server} failed:`, error)
     return []
   }
 }
@@ -79,7 +81,8 @@ export async function mcporterDaemonStatus(): Promise<{ running: boolean }> {
   try {
     const { stdout } = await exec(BIN, ["daemon", "status"], { timeout: 5000 })
     return { running: stdout.toLowerCase().includes("running") }
-  } catch {
+  } catch (error) {
+    console.error("mcporter daemon status check failed:", error)
     return { running: false }
   }
 }
@@ -99,7 +102,10 @@ export async function generateMcporterConfig(servers: McpServer[]): Promise<void
 
     if (server.transport === "stdio") {
       if (server.command) entry.command = server.command
-      if (server.args) entry.args = server.args.split(/\s+/).filter(Boolean)
+      if (server.args) {
+        try { entry.args = JSON.parse(server.args) }
+        catch { entry.args = server.args.split(/\s+/).filter(Boolean) }
+      }
     } else {
       if (server.url) entry.url = server.url
     }
@@ -112,6 +118,7 @@ export async function generateMcporterConfig(servers: McpServer[]): Promise<void
 
   await mkdir(dirname(CONFIG), { recursive: true })
   await writeFile(CONFIG, JSON.stringify({ mcpServers: config }, null, 2), "utf-8")
+  await chmod(CONFIG, 0o600)
 
   try {
     await mcporterDaemonRestart()

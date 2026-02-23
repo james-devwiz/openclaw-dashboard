@@ -1,25 +1,64 @@
-"use client" // Requires useState for comment input, useComments for data
+"use client" // Requires useState for comment input, useRef for prev status tracking, useEffect for auto-review
 
-import { useState } from "react"
-import { MessageSquare, Send } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { MessageSquare, Send, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { useComments } from "@/hooks/useComments"
+import { requestReviewSummaryApi, requestReviewReplyApi } from "@/services/comment.service"
 import TaskCommentItem from "./TaskCommentItem"
+
+import type { TaskStatus } from "@/types"
 
 interface TaskCommentSectionProps {
   taskId: string
+  taskStatus: TaskStatus
 }
 
-export default function TaskCommentSection({ taskId }: TaskCommentSectionProps) {
-  const { comments, loading, addComment, removeComment } = useComments(taskId)
+export default function TaskCommentSection({ taskId, taskStatus }: TaskCommentSectionProps) {
+  const { comments, loading, addComment, removeComment, refetch } = useComments(taskId)
   const [input, setInput] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [aiThinking, setAiThinking] = useState(false)
+  const prevStatusRef = useRef<TaskStatus>(taskStatus)
+  const reviewTriggeredRef = useRef(false)
+
+  useEffect(() => {
+    const prev = prevStatusRef.current
+    prevStatusRef.current = taskStatus
+
+    if (taskStatus === "Needs Review" && prev !== "Needs Review" && !reviewTriggeredRef.current) {
+      reviewTriggeredRef.current = true
+      setAiThinking(true)
+      requestReviewSummaryApi(taskId)
+        .then(() => refetch())
+        .catch((err) => console.error("Auto-review failed:", err))
+        .finally(() => setAiThinking(false))
+    }
+
+    if (taskStatus !== "Needs Review") {
+      reviewTriggeredRef.current = false
+    }
+  }, [taskStatus, taskId, refetch])
 
   const handleSubmit = async () => {
     if (!input.trim() || submitting) return
+    const message = input.trim()
     setSubmitting(true)
     try {
-      await addComment(input.trim())
+      await addComment(message)
       setInput("")
+
+      if (taskStatus === "Needs Review") {
+        setAiThinking(true)
+        try {
+          await requestReviewReplyApi(taskId, message)
+          await refetch()
+        } catch (err) {
+          console.error("Auto-reply failed:", err)
+        } finally {
+          setAiThinking(false)
+        }
+      }
     } finally {
       setSubmitting(false)
     }
@@ -33,6 +72,13 @@ export default function TaskCommentSection({ taskId }: TaskCommentSectionProps) 
           Comments {comments.length > 0 && `(${comments.length})`}
         </h3>
       </div>
+
+      {aiThinking && (
+        <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <Loader2 size={14} className="text-blue-500 animate-spin" />
+          <span className="text-xs text-blue-400">AI Assistant is reviewing...</span>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-xs text-muted-foreground">Loading comments...</p>
@@ -57,14 +103,15 @@ export default function TaskCommentSection({ taskId }: TaskCommentSectionProps) 
           rows={2}
           aria-label="Comment input"
         />
-        <button
+        <Button
+          size="icon"
           onClick={handleSubmit}
           disabled={!input.trim() || submitting}
-          className="self-end p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="self-end"
           aria-label="Add comment"
         >
           <Send size={14} />
-        </button>
+        </Button>
       </div>
     </section>
   )

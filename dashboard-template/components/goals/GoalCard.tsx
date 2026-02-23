@@ -4,10 +4,17 @@ import { Calendar, Target } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import ProgressRing from "@/components/ui/ProgressRing"
-import { SITE_CONFIG } from "@/lib/site-config"
 import { cn } from "@/lib/utils"
 
 import type { Goal } from "@/types/index"
+
+const CATEGORY_VARIANTS: Record<string, "default" | "success" | "warning" | "secondary"> = {
+  Personal: "secondary",
+  System: "default",
+  "Business A": "default",
+  "Business B": "success",
+  "Business C": "warning",
+}
 
 interface GoalCardProps {
   goal: Goal
@@ -34,7 +41,7 @@ export default function GoalCard({ goal, taskCount, recurringCount, isSelected, 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <Target size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
-            <Badge variant={(SITE_CONFIG.categoryVariants[goal.category] || "secondary") as "default" | "secondary" | "success" | "warning"} className="text-[10px]">
+            <Badge variant={CATEGORY_VARIANTS[goal.category] || "secondary"} className="text-[10px]">
               {goal.category}
             </Badge>
           </div>
@@ -50,7 +57,7 @@ export default function GoalCard({ goal, taskCount, recurringCount, isSelected, 
             {goal.targetDate && (
               <span className="flex items-center gap-1">
                 <Calendar size={10} aria-hidden="true" />
-                {new Date(goal.targetDate).toLocaleDateString(SITE_CONFIG.locale, { day: "numeric", month: "short" })}
+                {new Date(goal.targetDate).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
               </span>
             )}
           </div>

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Trash2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import type { McpBinding } from "@/types/mcp.types"
 
 interface McpBindingRowProps {
@@ -55,9 +56,9 @@ export default function McpBindingRow({ binding, onToggle, onRateLimit, onDelete
         <span className="text-xs text-muted-foreground">/min</span>
       </div>
 
-      <button onClick={() => onDelete(binding.id)} className="p-1.5 rounded hover:bg-muted text-red-500 transition-colors" aria-label="Remove binding">
+      <Button onClick={() => onDelete(binding.id)} variant="ghost" size="icon" className="text-red-500" aria-label="Remove binding">
         <Trash2 size={14} />
-      </button>
+      </Button>
     </div>
   )
 }

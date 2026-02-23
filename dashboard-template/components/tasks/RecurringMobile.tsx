@@ -1,8 +1,10 @@
 "use client" // Requires interactive onClick handlers for row expand, trigger, goal select
 
+import Link from "next/link"
 import { Play, Clock, ChevronDown, ChevronRight, Check } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cronToHuman } from "@/lib/task-constants"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import { STATUS_CONFIG, buildChannels } from "./recurring-shared"
@@ -48,7 +50,12 @@ export default function RecurringMobile({ jobs, goals, expanded, triggered, onTo
               )}
             </button>
             <div className="text-xs text-muted-foreground space-y-1 mb-3">
-              <p>{cronToHuman(job.schedule)} &middot; {buildChannels(job)}</p>
+              <p className="flex items-center gap-2 flex-wrap">
+                {cronToHuman(job.schedule)} &middot; {buildChannels(job)}
+                {job.model && (
+                  <Link href="/architecture?tab=models"><Badge variant="outline" className="text-[10px] font-mono hover:bg-blue-500/10 hover:border-blue-500/30">{job.model}</Badge></Link>
+                )}
+              </p>
               {job.nextRun && <p className="text-foreground font-medium">Next: {formatRelativeTime(job.nextRun)}</p>}
               <GoalSelect jobName={job.name} goalId={job.goalId} goals={goals} onChange={onGoalChange} />
             </div>
@@ -61,19 +68,18 @@ export default function RecurringMobile({ jobs, goals, expanded, triggered, onTo
                 <p className="text-xs text-muted-foreground italic mb-3">System event — no agent prompt</p>
               )
             )}
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onTrigger(job.name)}
               disabled={job.enabled === false || justTriggered}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs",
-                justTriggered
-                  ? "border-green-500/30 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                  : "border-border hover:bg-accent disabled:opacity-50"
+                justTriggered && "border-green-500/30 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
               )}
               aria-label={`Trigger ${job.name}`}
             >
               {justTriggered ? <><Check size={10} />Triggered</> : <><Play size={10} />Run</>}
-            </button>
+            </Button>
           </div>
         )
       })}

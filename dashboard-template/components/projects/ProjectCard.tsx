@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { FolderOpen, MessageSquare, FileText, MoreHorizontal, Trash2, Archive } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import type { Project } from "@/types/index"
 
@@ -36,22 +37,26 @@ export default function ProjectCard({ project, onDelete, onArchive }: ProjectCar
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {onArchive && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={(e) => { e.preventDefault(); onArchive(project.id) }}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="size-7"
               aria-label="Archive project"
             >
               <Archive size={14} />
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={(e) => { e.preventDefault(); onDelete(project.id) }}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+              className="size-7 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
               aria-label="Delete project"
             >
               <Trash2 size={14} />
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-client"
 import type {
   McpServer, McpTool, McpBinding, McpCallLog,
   CreateMcpServerInput, UpdateMcpServerInput, McpObservabilityStats,
@@ -9,14 +10,14 @@ const BASE = "/api/mcp"
 
 export async function getMcpServersApi(includeDisabled = false): Promise<McpServer[]> {
   const qs = includeDisabled ? "?includeDisabled=true" : ""
-  const res = await fetch(`${BASE}/servers${qs}`)
+  const res = await apiFetch(`${BASE}/servers${qs}`)
   if (!res.ok) throw new Error(`Servers fetch failed: ${res.status}`)
   const data = await res.json()
   return data.servers || []
 }
 
 export async function createMcpServerApi(input: CreateMcpServerInput): Promise<McpServer> {
-  const res = await fetch(`${BASE}/servers`, {
+  const res = await apiFetch(`${BASE}/servers`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -26,7 +27,7 @@ export async function createMcpServerApi(input: CreateMcpServerInput): Promise<M
 }
 
 export async function updateMcpServerApi(id: string, updates: UpdateMcpServerInput): Promise<McpServer> {
-  const res = await fetch(`${BASE}/servers`, {
+  const res = await apiFetch(`${BASE}/servers`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ serverId: id, ...updates }),
@@ -36,18 +37,18 @@ export async function updateMcpServerApi(id: string, updates: UpdateMcpServerInp
 }
 
 export async function deleteMcpServerApi(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/servers?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+  const res = await apiFetch(`${BASE}/servers?id=${encodeURIComponent(id)}`, { method: "DELETE" })
   if (!res.ok) throw new Error("Failed to delete server")
 }
 
 export async function testMcpServerApi(id: string): Promise<{ healthy: boolean; message: string }> {
-  const res = await fetch(`${BASE}/servers/${id}/health`, { method: "POST" })
+  const res = await apiFetch(`${BASE}/servers/${id}/health`, { method: "POST" })
   if (!res.ok) throw new Error("Health check failed")
   return res.json()
 }
 
 export async function syncMcpToolsApi(id: string): Promise<{ toolCount: number }> {
-  const res = await fetch(`${BASE}/servers/${id}/sync`, { method: "POST" })
+  const res = await apiFetch(`${BASE}/servers/${id}/sync`, { method: "POST" })
   if (!res.ok) throw new Error("Sync failed")
   return res.json()
 }
@@ -58,13 +59,13 @@ export async function getMcpToolsApi(serverId?: string, search?: string): Promis
   const params = new URLSearchParams()
   if (serverId) params.set("serverId", serverId)
   if (search) params.set("search", search)
-  const res = await fetch(`${BASE}/tools?${params}`)
+  const res = await apiFetch(`${BASE}/tools?${params}`)
   if (!res.ok) throw new Error("Tools fetch failed")
   return (await res.json()).tools || []
 }
 
 export async function updateMcpToolApi(id: string, updates: { tags?: string[]; enabled?: boolean }): Promise<McpTool> {
-  const res = await fetch(`${BASE}/tools`, {
+  const res = await apiFetch(`${BASE}/tools`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ toolId: id, ...updates }),
@@ -74,7 +75,7 @@ export async function updateMcpToolApi(id: string, updates: { tags?: string[]; e
 }
 
 export async function callMcpToolApi(toolId: string, params: Record<string, unknown>): Promise<{ result: unknown; latencyMs: number }> {
-  const res = await fetch(`${BASE}/tools/${toolId}/call`, {
+  const res = await apiFetch(`${BASE}/tools/${toolId}/call`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ params }),
@@ -86,13 +87,13 @@ export async function callMcpToolApi(toolId: string, params: Record<string, unkn
 // --- Bindings ---
 
 export async function getMcpBindingsApi(projectId: string): Promise<McpBinding[]> {
-  const res = await fetch(`${BASE}/bindings?projectId=${encodeURIComponent(projectId)}`)
+  const res = await apiFetch(`${BASE}/bindings?projectId=${encodeURIComponent(projectId)}`)
   if (!res.ok) throw new Error("Bindings fetch failed")
   return (await res.json()).bindings || []
 }
 
 export async function createMcpBindingApi(input: { projectId: string; serverId: string; toolId?: string; rateLimit?: number }): Promise<McpBinding> {
-  const res = await fetch(`${BASE}/bindings`, {
+  const res = await apiFetch(`${BASE}/bindings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -102,7 +103,7 @@ export async function createMcpBindingApi(input: { projectId: string; serverId: 
 }
 
 export async function updateMcpBindingApi(id: string, updates: { enabled?: boolean; rateLimit?: number }): Promise<McpBinding> {
-  const res = await fetch(`${BASE}/bindings`, {
+  const res = await apiFetch(`${BASE}/bindings`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ bindingId: id, ...updates }),
@@ -112,7 +113,7 @@ export async function updateMcpBindingApi(id: string, updates: { enabled?: boole
 }
 
 export async function deleteMcpBindingApi(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/bindings?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+  const res = await apiFetch(`${BASE}/bindings?id=${encodeURIComponent(id)}`, { method: "DELETE" })
   if (!res.ok) throw new Error("Failed to delete binding")
 }
 
@@ -127,13 +128,13 @@ export async function getMcpCallLogsApi(filter: {
   if (filter.status) params.set("status", filter.status)
   if (filter.limit) params.set("limit", String(filter.limit))
   if (filter.offset) params.set("offset", String(filter.offset))
-  const res = await fetch(`${BASE}/logs?${params}`)
+  const res = await apiFetch(`${BASE}/logs?${params}`)
   if (!res.ok) throw new Error("Logs fetch failed")
   return res.json()
 }
 
 export async function getMcpStatsApi(hours = 24): Promise<McpObservabilityStats> {
-  const res = await fetch(`${BASE}/stats?hours=${hours}`)
+  const res = await apiFetch(`${BASE}/stats?hours=${hours}`)
   if (!res.ok) throw new Error("Stats fetch failed")
   return (await res.json()).stats
 }

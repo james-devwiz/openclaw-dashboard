@@ -1,5 +1,6 @@
-import { Target, KanbanSquare, Newspaper, Bell, Brain, FileText } from "lucide-react"
+import { Target, KanbanSquare, Newspaper, Bell, Brain, FileText, UserPlus } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import type { SearchResult } from "@/types/index"
 
 const TYPE_ICONS: Record<string, typeof Target> = {
@@ -9,6 +10,7 @@ const TYPE_ICONS: Record<string, typeof Target> = {
   approval: Bell,
   memory: Brain,
   document: FileText,
+  lead: UserPlus,
 }
 
 interface SearchResultItemProps {
@@ -23,9 +25,10 @@ export default function SearchResultItem({ result, isSelected, onClick }: Search
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-colors ${
+      className={cn(
+        "w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg transition-colors",
         isSelected ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-accent"
-      }`}
+      )}
       role="option"
       aria-selected={isSelected}
     >

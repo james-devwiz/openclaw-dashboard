@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronDown, ChevronUp, Trash2, BookmarkPlus, FileText } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+import { Button } from "@/components/ui/button"
 import { cn, formatTime, formatDate } from "@/lib/utils"
 import { TYPE_COLORS, TYPE_SHORT_LABELS } from "@/lib/brief-constants"
 import MarkdownMessage from "@/components/chat/MarkdownMessage"
@@ -130,13 +131,15 @@ function BriefTableRow({ brief, expanded, onToggle, onDelete }: {
                     {brief.content ? <MarkdownMessage content={brief.content} /> : "No content."}
                   </div>
                   <div className="flex items-center gap-3 mt-3">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={(e) => { e.stopPropagation(); onDelete(brief.id) }}
-                      className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                      className="text-red-500 hover:text-red-600"
                       aria-label={`Delete ${brief.title}`}
                     >
                       <Trash2 size={12} /> Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </motion.div>

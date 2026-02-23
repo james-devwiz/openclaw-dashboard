@@ -1,5 +1,6 @@
-import { ChevronRight, ExternalLink, BookOpen, Download, Loader2 } from "lucide-react"
+import { ChevronRight, ExternalLink, BookOpen, Download } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import MissingReasons from "./MissingReasons"
 import type { SkillInfo } from "@/types/index"
@@ -38,34 +39,27 @@ export default function SkillRow({ skill, isExpanded, isBusy, onToggle, onViewDo
         <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-2">
             {skill.status !== "missing" && (
-              <button
-                onClick={onToggleEnabled}
-                disabled={isBusy}
-                className={cn(
-                  "relative w-9 h-5 rounded-full transition-colors",
-                  skill.status === "ready" ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600",
-                  isBusy && "opacity-50"
-                )}
-                aria-label={`${skill.status === "disabled" ? "Enable" : "Disable"} ${skill.name}`}
-              >
-                {isBusy ? (
-                  <Loader2 size={12} className="absolute top-1 left-1/2 -translate-x-1/2 animate-spin text-white" />
-                ) : (
-                  <span className={cn(
-                    "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform",
-                    skill.status === "ready" ? "translate-x-4.5" : "translate-x-0.5"
-                  )} />
-                )}
-              </button>
+              <label className={cn("relative inline-flex cursor-pointer items-center", isBusy && "opacity-50 pointer-events-none")}>
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={!skill.disabled}
+                  onChange={onToggleEnabled}
+                  disabled={isBusy}
+                  aria-label={`${skill.disabled ? "Enable" : "Disable"} ${skill.name}`}
+                />
+                <div className="peer h-7 w-12 rounded-full bg-slate-300 dark:bg-gray-600 transition-colors duration-200 peer-checked:bg-green-500" />
+                <span className="absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-in-out peer-checked:translate-x-5" />
+              </label>
             )}
             {onInstall && (
-              <button
+              <Button
                 onClick={onInstall}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                size="sm"
                 aria-label={`Install ${skill.name}`}
               >
                 <Download size={10} /> Install
-              </button>
+              </Button>
             )}
           </div>
         </td>

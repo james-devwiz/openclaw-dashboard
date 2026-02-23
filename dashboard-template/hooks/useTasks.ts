@@ -10,10 +10,12 @@ import {
   deleteTaskApi,
 } from "@/services/task.service"
 
-import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource, KanbanColumn } from "@/types/index"
+import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource, TaskAssignee, KanbanColumn } from "@/types/index"
+import { AI_ASSIGNEE_STATUSES, USER_ASSIGNEE_STATUSES } from "@/lib/task-constants"
 
 const COLUMNS: KanbanColumn[] = [
   { id: "Backlog", name: "Backlog", color: "#9ca3af", tasks: [] },
+  { id: "To Be Scheduled", name: "To Be Scheduled", color: "#818cf8", tasks: [] },
   { id: "To Do This Week", name: "To Do This Week", color: "#6b7280", tasks: [] },
   { id: "In Progress", name: "In Progress", color: "#3b82f6", tasks: [] },
   { id: "Requires More Info", name: "Requires More Info", color: "#f59e0b", tasks: [] },
@@ -51,8 +53,11 @@ export function useTasks(goalId?: string, categoryFilter?: string) {
         }
       }
 
+      const autoAssignee: TaskAssignee | undefined =
+        AI_ASSIGNEE_STATUSES.includes(newStatus) ? "AI Assistant" :
+        USER_ASSIGNEE_STATUSES.includes(newStatus) ? "User" : undefined
       setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus, ...(autoAssignee ? { assignee: autoAssignee } : {}) } : t))
       )
       try {
         await updateTaskStatusApi(taskId, newStatus)
@@ -64,7 +69,7 @@ export function useTasks(goalId?: string, categoryFilter?: string) {
   )
 
   const updateTask = useCallback(
-    async (taskId: string, updates: Partial<Pick<Task, "name" | "description" | "status" | "priority" | "category" | "dueDate" | "goalId">>) => {
+    async (taskId: string, updates: Partial<Pick<Task, "name" | "description" | "status" | "priority" | "category" | "dueDate" | "goalId" | "complexity" | "estimatedMinutes" | "assignee">>) => {
       setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updates } as Task : t)))
       try {
         await updateTaskApi(taskId, updates)

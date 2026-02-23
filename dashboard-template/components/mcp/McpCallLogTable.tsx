@@ -1,5 +1,6 @@
 "use client" // Paginated log table with status badges
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { McpCallLog } from "@/types/mcp.types"
 
@@ -56,9 +57,9 @@ export default function McpCallLogTable({ logs, total, onLoadMore }: McpCallLogT
       </div>
 
       {logs.length < total && (
-        <button onClick={onLoadMore} className="mt-4 px-4 py-2 text-sm rounded-lg border border-border hover:bg-muted transition-colors">
+        <Button onClick={onLoadMore} variant="outline" className="mt-4">
           Load more ({total - logs.length} remaining)
-        </button>
+        </Button>
       )}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Server, Wifi, WifiOff, RefreshCw, Pencil, Trash2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { McpServer } from "@/types/mcp.types"
 
@@ -66,18 +67,18 @@ export default function McpServerCard({ server, onEdit, onDelete, onTest, onSync
       </div>
 
       <div className="flex items-center gap-1.5">
-        <button onClick={handleTest} disabled={testing} className="p-1.5 rounded-md hover:bg-muted transition-colors" aria-label="Test connection">
+        <Button onClick={handleTest} disabled={testing} variant="ghost" size="icon" aria-label="Test connection">
           {testing ? <RefreshCw size={14} className="animate-spin" /> : <Wifi size={14} />}
-        </button>
-        <button onClick={handleSync} disabled={syncing} className="p-1.5 rounded-md hover:bg-muted transition-colors" aria-label="Sync tools">
+        </Button>
+        <Button onClick={handleSync} disabled={syncing} variant="ghost" size="icon" aria-label="Sync tools">
           <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-        </button>
-        <button onClick={() => onEdit(server)} className="p-1.5 rounded-md hover:bg-muted transition-colors" aria-label="Edit server">
+        </Button>
+        <Button onClick={() => onEdit(server)} variant="ghost" size="icon" aria-label="Edit server">
           <Pencil size={14} />
-        </button>
-        <button onClick={() => onDelete(server.id)} className="p-1.5 rounded-md hover:bg-muted text-red-500 transition-colors" aria-label="Delete server">
+        </Button>
+        <Button onClick={() => onDelete(server.id)} variant="ghost" size="icon" className="text-red-500" aria-label="Delete server">
           <Trash2 size={14} />
-        </button>
+        </Button>
         {!server.enabled && <WifiOff size={14} className="ml-auto text-muted-foreground" aria-hidden="true" />}
       </div>
     </div>

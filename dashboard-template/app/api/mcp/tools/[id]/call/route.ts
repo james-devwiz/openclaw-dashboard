@@ -31,6 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ result, latencyMs })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Tool call failed"
+    console.error(`MCP tool call error (${server.name}.${tool.name}):`, message)
 
     logMcpCall({
       serverId: server.id, toolName: tool.name, status: "error",
@@ -38,6 +39,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       errorMessage: message,
     })
 
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: "Tool call failed" }, { status: 500 })
   }
 }

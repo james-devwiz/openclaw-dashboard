@@ -3,7 +3,7 @@
 import { FileText } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { formatRelativeTime, getStaleness } from "@/lib/utils"
+import { cn, formatRelativeTime, getStaleness } from "@/lib/utils"
 
 import type { MemoryItem, MemoryCategory } from "@/types/index"
 
@@ -36,7 +36,7 @@ export default function MemoryCard({ item, query, onClick }: MemoryCardProps) {
   return (
     <button
       onClick={() => onClick(item)}
-      className={`w-full text-left p-4 rounded-xl border border-border border-l-4 ${STALENESS_BORDER[staleness.level]} bg-card shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all duration-200`}
+      className={cn("w-full text-left p-4 rounded-xl border border-border border-l-4 bg-card shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all duration-200", STALENESS_BORDER[staleness.level])}
       aria-label={`Open ${item.title}`}
     >
       <div className="flex items-start gap-3">
@@ -47,7 +47,7 @@ export default function MemoryCard({ item, query, onClick }: MemoryCardProps) {
           <h3 className="text-sm font-semibold text-foreground truncate capitalize">{item.title}</h3>
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{excerptText}</p>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className={`text-[10px] capitalize border-0 ${BADGE_COLORS[item.category]}`}>
+            <Badge variant="outline" className={cn("text-[10px] capitalize border-0", BADGE_COLORS[item.category])}>
               {item.category}
             </Badge>
             <span className="text-xs text-muted-foreground">

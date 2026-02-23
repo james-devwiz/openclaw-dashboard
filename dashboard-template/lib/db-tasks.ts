@@ -4,60 +4,16 @@ import { randomUUID } from "crypto"
 
 import { getDb } from "./db"
 import { logActivity } from "./activity-logger"
-import { SITE_CONFIG } from "./site-config"
+import { rowToTask, autoAssigneeForStatus, validateWeekStatus } from "./db-task-automation"
+import type { TaskRow } from "./db-task-automation"
 
-import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource } from "@/types"
+import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource, TaskComplexity, TaskAssignee } from "@/types"
 
-interface TaskRow {
-  id: string
-  name: string
-  description: string
-  status: string
-  priority: string
-  category: string
-  dueDate: string | null
-  source: string
-  goalId: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-function rowToTask(row: TaskRow): Task {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description || undefined,
-    status: row.status as TaskStatus,
-    priority: row.priority as TaskPriority,
-    category: row.category as TaskCategory,
-    dueDate: row.dueDate || undefined,
-    source: row.source as TaskSource,
-    goalId: row.goalId || "general",
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }
-}
-
-/** Returns current week's Sunday-to-Sunday bounds in local timezone */
-export function getWeekBounds(): { start: string; end: string } {
-  const now = new Date()
-  const local = new Date(now.getTime() + SITE_CONFIG.utcOffsetHours * 60 * 60 * 1000)
-  const day = local.getUTCDay()
-  const startOfWeek = new Date(local)
-  startOfWeek.setUTCDate(local.getUTCDate() - day)
-  startOfWeek.setUTCHours(0, 0, 0, 0)
-  const endOfWeek = new Date(startOfWeek)
-  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 7)
-  return { start: startOfWeek.toISOString().slice(0, 10), end: endOfWeek.toISOString().slice(0, 10) }
-}
-
-/** Validates that a task can be moved to "To Do This Week" */
-export function validateWeekStatus(dueDate: string | null | undefined): string | null {
-  if (!dueDate) return "Task must have a due date to be scheduled for this week"
-  const { start, end } = getWeekBounds()
-  if (dueDate < start || dueDate >= end) return `Due date must be within this week (${start} to ${end})`
-  return null
-}
+// Re-export everything from automation so consumers importing from db-tasks still work
+export {
+  type TaskRow, rowToTask, autoAssigneeForStatus, getWeekBounds, validateWeekStatus,
+  getTaskStats, getSchedulingData, priorityScore, sumEstimatedMinutes,
+} from "./db-task-automation"
 
 export function getTasks(goalId?: string): Task[] {
   const db = getDb()
@@ -90,27 +46,25 @@ export function createTask(input: {
   category?: TaskCategory
   dueDate?: string
   source?: TaskSource
+  complexity?: TaskComplexity
+  estimatedMinutes?: number
+  assignee?: TaskAssignee
   goalId?: string
 }): Task {
   const db = getDb()
   const now = new Date().toISOString()
   const id = randomUUID()
+  const status = input.status || "Backlog"
+  const assignee = input.assignee || autoAssigneeForStatus(status as TaskStatus) || null
 
   db.prepare(
-    `INSERT INTO tasks (id, name, description, status, priority, category, dueDate, source, goalId, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO tasks (id, name, description, status, priority, category, dueDate, source, complexity, estimatedMinutes, assignee, goalId, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
-    id,
-    input.name,
-    input.description || "",
-    input.status || "Backlog",
-    input.priority || "Medium",
-    input.category || "Personal",
-    input.dueDate || null,
-    input.source || "Manual",
-    input.goalId || "general",
-    now,
-    now
+    id, input.name, input.description || "", status, input.priority || "Medium",
+    input.category || "Personal", input.dueDate || null, input.source || "Manual",
+    input.complexity || "Moderate", input.estimatedMinutes || null, assignee,
+    input.goalId || "general", now, now
   )
 
   const task = rowToTask(db.prepare("SELECT * FROM tasks WHERE id = ?").get(id) as TaskRow)
@@ -120,8 +74,8 @@ export function createTask(input: {
 
 export function updateTaskStatus(id: string, status: TaskStatus): { error?: string } {
   const db = getDb()
-  const old = db.prepare("SELECT name, status, dueDate FROM tasks WHERE id = ?").get(id) as
-    { name: string; status: string; dueDate: string | null } | undefined
+  const old = db.prepare("SELECT name, status, dueDate, assignee FROM tasks WHERE id = ?").get(id) as
+    { name: string; status: string; dueDate: string | null; assignee: string | null } | undefined
 
   if (status === "To Do This Week") {
     const weekError = validateWeekStatus(old?.dueDate)
@@ -129,7 +83,12 @@ export function updateTaskStatus(id: string, status: TaskStatus): { error?: stri
   }
 
   const now = new Date().toISOString()
-  db.prepare("UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ?").run(status, now, id)
+  const newAssignee = autoAssigneeForStatus(status)
+  if (newAssignee) {
+    db.prepare("UPDATE tasks SET status = ?, assignee = ?, updatedAt = ? WHERE id = ?").run(status, newAssignee, now, id)
+  } else {
+    db.prepare("UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ?").run(status, now, id)
+  }
   logActivity({
     entityType: "task", entityId: id, entityName: old?.name || "Unknown",
     action: "status_changed", detail: `Status: ${old?.status || "?"} → ${status}`,
@@ -139,7 +98,7 @@ export function updateTaskStatus(id: string, status: TaskStatus): { error?: stri
 
 export function updateTask(
   id: string,
-  updates: Partial<Pick<Task, "name" | "description" | "status" | "priority" | "category" | "dueDate" | "goalId">>
+  updates: Partial<Pick<Task, "name" | "description" | "status" | "priority" | "category" | "dueDate" | "goalId" | "complexity" | "estimatedMinutes" | "assignee">>
 ): Task | null | { error: string } {
   const db = getDb()
   const oldRow = db.prepare("SELECT * FROM tasks WHERE id = ?").get(id) as TaskRow | undefined
@@ -148,6 +107,12 @@ export function updateTask(
     const dueDate = updates.dueDate !== undefined ? (updates.dueDate || null) : (oldRow?.dueDate || null)
     const weekError = validateWeekStatus(dueDate)
     if (weekError) return { error: weekError }
+  }
+
+  // Auto-assign on status change (unless explicit assignee provided)
+  if (updates.status && updates.assignee === undefined) {
+    const auto = autoAssigneeForStatus(updates.status)
+    if (auto) updates.assignee = auto
   }
 
   const now = new Date().toISOString()
@@ -161,6 +126,9 @@ export function updateTask(
   if (updates.category !== undefined) { fields.push("category = ?"); values.push(updates.category) }
   if (updates.dueDate !== undefined) { fields.push("dueDate = ?"); values.push(updates.dueDate || null) }
   if (updates.goalId !== undefined) { fields.push("goalId = ?"); values.push(updates.goalId) }
+  if (updates.complexity !== undefined) { fields.push("complexity = ?"); values.push(updates.complexity) }
+  if (updates.estimatedMinutes !== undefined) { fields.push("estimatedMinutes = ?"); values.push(String(updates.estimatedMinutes)) }
+  if (updates.assignee !== undefined) { fields.push("assignee = ?"); values.push(updates.assignee || null) }
 
   values.push(id)
   db.prepare(`UPDATE tasks SET ${fields.join(", ")} WHERE id = ?`).run(...values)
@@ -190,28 +158,4 @@ export function deleteTask(id: string): void {
   const row = db.prepare("SELECT name FROM tasks WHERE id = ?").get(id) as { name: string } | undefined
   db.prepare("DELETE FROM tasks WHERE id = ?").run(id)
   logActivity({ entityType: "task", entityId: id, entityName: row?.name || "Unknown", action: "deleted" })
-}
-
-export function getTaskStats(category?: string): {
-  total: number; thisWeek: number; today: number; inProgress: number; completionPercent: number
-} {
-  const db = getDb()
-  const where = category ? "WHERE category = ?" : "WHERE 1=1"
-  const params = category ? [category] : []
-
-  const total = (db.prepare(`SELECT COUNT(*) as c FROM tasks ${where} AND status != 'Archived'`).get(...params) as { c: number }).c
-  const completed = (db.prepare(`SELECT COUNT(*) as c FROM tasks ${where} AND status = 'Completed'`).get(...params) as { c: number }).c
-  const inProgress = (db.prepare(`SELECT COUNT(*) as c FROM tasks ${where} AND status = 'In Progress'`).get(...params) as { c: number }).c
-
-  const now = new Date()
-  const todayStr = now.toISOString().slice(0, 10)
-  const startOfWeek = new Date(now)
-  startOfWeek.setDate(now.getDate() - now.getDay())
-  const weekStr = startOfWeek.toISOString().slice(0, 10)
-
-  const today = (db.prepare(`SELECT COUNT(*) as c FROM tasks ${where} AND createdAt >= ?`).get(...[...params, todayStr]) as { c: number }).c
-  const thisWeek = (db.prepare(`SELECT COUNT(*) as c FROM tasks ${where} AND createdAt >= ?`).get(...[...params, weekStr]) as { c: number }).c
-  const completionPercent = total > 0 ? Math.round((completed / total) * 100) : 0
-
-  return { total, thisWeek, today, inProgress, completionPercent }
 }

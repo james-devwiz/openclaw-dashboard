@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, FolderOpen, Pencil, Check, X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Project } from "@/types/index"
 
@@ -57,19 +58,21 @@ export default function ProjectHeader({ project, onRename }: ProjectHeaderProps)
             className="text-xl font-bold bg-transparent border-b-2 border-blue-500 text-foreground focus:outline-none"
             autoFocus
           />
-          <button onClick={handleSave} className="p-1 text-green-600 hover:text-green-700" aria-label="Save"><Check size={16} /></button>
-          <button onClick={() => setEditing(false)} className="p-1 text-muted-foreground hover:text-foreground" aria-label="Cancel"><X size={16} /></button>
+          <Button variant="ghost" size="icon" onClick={handleSave} className="text-green-600 hover:text-green-700 size-7" aria-label="Save"><Check size={16} /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setEditing(false)} className="size-7" aria-label="Cancel"><X size={16} /></Button>
         </div>
       ) : (
         <div className="flex items-center gap-2 group">
           <h1 className="text-xl font-bold text-foreground">{project.name}</h1>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => { setEditValue(project.name); setEditing(true) }}
-            className="p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition-opacity"
+            className="size-7 opacity-0 group-hover:opacity-100 transition-opacity"
             aria-label="Rename project"
           >
             <Pencil size={14} />
-          </button>
+          </Button>
         </div>
       )}
     </div>

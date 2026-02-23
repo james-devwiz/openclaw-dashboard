@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { apiFetch } from "@/lib/api-client"
 
 interface ChatModel {
   id: string
@@ -24,7 +25,7 @@ export default function ModelSelector({ selectedModel, onSelectModel }: ModelSel
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch("/api/chat/models")
+    apiFetch("/api/chat/models")
       .then((r) => r.json())
       .then((data) => setModels(data.models || []))
       .catch(() => {})

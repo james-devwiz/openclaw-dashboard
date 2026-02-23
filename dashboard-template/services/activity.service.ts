@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-client"
 import type { ActivityItem, ActivityEntityType } from "@/types/activity.types"
 
 const BASE_URL = "/api"
@@ -13,7 +14,7 @@ export async function getActivityApi(params?: {
   if (params?.offset) query.set("offset", String(params.offset))
 
   try {
-    const res = await fetch(`${BASE_URL}/activity?${query}`)
+    const res = await apiFetch(`${BASE_URL}/activity?${query}`)
     if (!res.ok) return { items: [], total: 0 }
     return res.json()
   } catch {
@@ -27,7 +28,7 @@ export async function getEntityActivitiesApi(
 ): Promise<ActivityItem[]> {
   try {
     const query = new URLSearchParams({ entityType, entityId })
-    const res = await fetch(`${BASE_URL}/activity/entity?${query}`)
+    const res = await apiFetch(`${BASE_URL}/activity/entity?${query}`)
     if (!res.ok) return []
     const data = await res.json()
     return data.items || []

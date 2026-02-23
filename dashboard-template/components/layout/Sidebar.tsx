@@ -3,28 +3,31 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import {
   LayoutDashboard,
   MessageCircle,
   FolderOpen,
   Target,
-  Newspaper,
+
   Bell,
   Brain,
   Sun as SunIcon,
   Network,
   HeartPulse,
   FileText,
+  UserPlus,
+  Linkedin,
   ChevronsLeft,
   Menu,
   Moon,
   Sun,
   Zap,
   Activity,
+  Clapperboard,
 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useLayout } from "./LayoutProvider"
 import { useApprovals } from "@/hooks/useApprovals"
@@ -37,7 +40,9 @@ const NAV_ITEMS: Array<{ href: string; label: string; icon: typeof LayoutDashboa
   { href: "/chat", label: "Chat", icon: MessageCircle, badge: "chat" },
   { href: "/projects", label: "Projects", icon: FolderOpen },
   { href: "/goals", label: "Goals & Tasks", icon: Target },
-  { href: "/content", label: "Content Centre", icon: Newspaper },
+  { href: "/leads", label: "Leads", icon: UserPlus },
+  { href: "/linkedin", label: "LinkedIn", icon: Linkedin },
+  { href: "/studio", label: "Content Studio", icon: Clapperboard },
   { href: "/approvals", label: "Approvals", icon: Bell, badge: "approvals" },
   { href: "/activity", label: "Activity", icon: Activity },
   { href: "/memory", label: "Memory", icon: Brain },
@@ -74,13 +79,15 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile hamburger */}
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border text-muted-foreground md:hidden shadow-sm"
+        className="fixed top-4 left-4 z-50 md:hidden shadow-sm"
         aria-label="Toggle navigation menu"
       >
         <Menu size={20} aria-hidden="true" />
-      </button>
+      </Button>
 
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
@@ -111,18 +118,20 @@ export default function Sidebar() {
               </div>
               {open && (
                 <div>
-                  <span className="block text-sm font-semibold text-foreground">{SITE_CONFIG.dashboardTitle}</span>
-                  <span className="block text-xs text-muted-foreground">{SITE_CONFIG.aiName}</span>
+                  <span className="block text-sm font-semibold text-foreground">Command Centre</span>
+                  <span className="block text-xs text-muted-foreground">AI Assistant</span>
                 </div>
               )}
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleOpen}
-              className="hidden md:grid size-8 place-content-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              className="hidden md:grid size-8 place-content-center"
               aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
             >
               <ChevronsLeft className={cn("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -161,13 +170,15 @@ export default function Sidebar() {
 
         {/* Dark mode toggle — pinned to bottom */}
         <div className="mt-auto pb-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleDark}
-            className="grid size-10 place-content-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mx-auto"
+            className="size-10 mx-auto"
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          </Button>
         </div>
 
       </nav>

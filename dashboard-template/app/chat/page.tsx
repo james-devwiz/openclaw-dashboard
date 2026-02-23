@@ -17,7 +17,7 @@ import { useSaveToMemory } from "@/hooks/useSaveToMemory"
 export default function ChatPage() {
   const {
     messages, activeTopic, setActiveTopic, isStreaming, loading,
-    sendMessage, clearMessages,
+    sendMessage,
     selectedModel, setSelectedModel, planMode, setPlanMode,
     researchMode, setResearchMode,
     currentSessionId, sessions, createNewSession, switchSession,
@@ -52,8 +52,6 @@ export default function ChatPage() {
       <ChatTopicSelector
         activeTopic={activeTopic}
         onTopicChange={setActiveTopic}
-        hasMessages={messages.length > 0}
-        onClear={clearMessages}
         onNewChat={createNewSession}
         onToggleHistory={() => setIsHistoryOpen((v) => !v)}
         isHistoryOpen={isHistoryOpen}

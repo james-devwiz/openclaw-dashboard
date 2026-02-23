@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 
+import { cn } from "@/lib/utils"
 import { useMcpObservability } from "@/hooks/useMcpObservability"
 import McpStatsCards from "./McpStatsCards"
 import McpCallLogTable from "./McpCallLogTable"
@@ -26,7 +27,7 @@ export default function McpObservabilityPanel() {
         {TIME_RANGES.map((r) => (
           <button
             key={r.id} onClick={() => setHours(r.id)}
-            className={`px-2.5 py-1 text-xs rounded-md transition-colors ${hours === r.id ? "bg-foreground text-background font-medium" : "text-muted-foreground hover:bg-muted"}`}
+            className={cn("px-2.5 py-1 text-xs rounded-md transition-colors", hours === r.id ? "bg-foreground text-background font-medium" : "text-muted-foreground hover:bg-muted")}
           >
             {r.label}
           </button>

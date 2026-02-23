@@ -4,6 +4,7 @@ import { useEffect } from "react"
 
 import { X, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import TaskSlideOverFields from "./TaskSlideOverFields"
 import TaskRelationsSection from "./TaskRelationsSection"
 import TaskActivitySection from "./TaskActivitySection"
@@ -50,13 +51,15 @@ export default function TaskSlideOver({ task, onClose, onUpdate, onDelete, onTas
           </div>
           <div className="flex items-center gap-1 shrink-0 ml-2">
             {onDelete && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleDelete}
-                className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                className="hover:bg-red-500/10 hover:text-red-500"
                 aria-label="Delete task"
               >
                 <Trash2 size={16} />
-              </button>
+              </Button>
             )}
             <button
               onClick={onClose}
@@ -72,7 +75,7 @@ export default function TaskSlideOver({ task, onClose, onUpdate, onDelete, onTas
           <TaskSlideOverFields task={task} onUpdate={onUpdate} />
           <TaskRelationsSection taskId={task.id} goalId={task.goalId} approvalId={task.approvalId} onTaskNavigate={onTaskNavigate} />
           <TaskActivitySection taskId={task.id} />
-          <TaskCommentSection taskId={task.id} />
+          <TaskCommentSection taskId={task.id} taskStatus={task.status} />
         </div>
       </div>
     </div>

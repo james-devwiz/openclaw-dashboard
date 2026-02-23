@@ -1,6 +1,6 @@
 "use client" // ReactFlow requires client-side rendering for canvas, zoom, pan, and drag interactions
 
-import { useMemo, useState, useCallback } from "react"
+import { useMemo } from "react"
 import {
   ReactFlow,
   Background,
@@ -49,9 +49,9 @@ export default function ArchitectureFlow({ data }: ArchitectureFlowProps) {
         <Controls showInteractive={false} />
         <MiniMap
           nodeColor={(node) => {
-            if (node.type === "agent") return "#3b82f6"
-            if (node.type === "business") return "#8b5cf6"
-            return "#6b7280"
+            if (node.type === "agent") return "var(--color-node-agent)"
+            if (node.type === "business") return "var(--color-node-business)"
+            return "var(--color-node-default)"
           }}
         />
       </ReactFlow>

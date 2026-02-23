@@ -3,6 +3,9 @@
 import { useState, useEffect, useMemo } from "react"
 import { X, Search, FileText, Check, Loader2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { apiFetch } from "@/lib/api-client"
 import type { MemoryItem } from "@/types/index"
 
 interface FilePickerDialogProps {
@@ -18,7 +21,7 @@ export default function FilePickerDialog({ onClose, onSelect, existingPaths }: F
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    fetch("/api/memory")
+    apiFetch("/api/memory")
       .then((r) => r.json())
       .then((data) => setFiles(data.items || []))
       .catch(() => {})
@@ -96,17 +99,19 @@ export default function FilePickerDialog({ onClose, onSelect, existingPaths }: F
                     key={file.relativePath}
                     onClick={() => !alreadyLinked && toggleFile(file.relativePath)}
                     disabled={alreadyLinked}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
                       alreadyLinked
                         ? "opacity-50 cursor-not-allowed"
                         : isSelected
                         ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
                         : "hover:bg-accent"
-                    }`}
+                    )}
                   >
-                    <div className={`grid size-5 place-content-center rounded border ${
+                    <div className={cn(
+                      "grid size-5 place-content-center rounded border",
                       isSelected ? "bg-blue-600 border-blue-600" : "border-border"
-                    }`}>
+                    )}>
                       {(isSelected || alreadyLinked) && <Check size={12} className="text-white" />}
                     </div>
                     <FileText size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
@@ -129,16 +134,15 @@ export default function FilePickerDialog({ onClose, onSelect, existingPaths }: F
             {selected.size} file{selected.size !== 1 ? "s" : ""} selected
           </span>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleAdd}
               disabled={selected.size === 0}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add {selected.size > 0 ? `(${selected.size})` : ""}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

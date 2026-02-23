@@ -27,6 +27,10 @@
   --color-claw-blue: #2563eb;
   --color-claw-purple: #7c3aed;
   --color-claw-green: #16a34a;
+
+  --color-node-agent: #3b82f6;
+  --color-node-business: #8b5cf6;
+  --color-node-default: #6b7280;
 }
 
 :root {

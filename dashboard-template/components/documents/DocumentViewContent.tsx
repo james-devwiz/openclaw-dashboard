@@ -1,8 +1,9 @@
 "use client" // Requires useState for save-to-memory modal toggle
 
 import { useState } from "react"
-import { Tag, Save } from "lucide-react"
+import { Tag, Save, FolderOpen, Bot, Settings, Inbox } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import MarkdownMessage from "@/components/chat/MarkdownMessage"
 import SaveToMemoryModal from "@/components/memory/SaveToMemoryModal"
 import { CATEGORY_COLORS } from "@/lib/document-constants"
@@ -27,6 +28,12 @@ export default function DocumentViewContent({ doc }: DocumentViewContentProps) {
         <span className={cn("px-2 py-0.5 rounded-full font-medium", colors.bg, colors.text)}>
           {doc.category}
         </span>
+        <span className="flex items-center gap-1">
+          {doc.projectName ? <><FolderOpen size={10} aria-hidden="true" />{doc.projectName}</>
+           : doc.agentName ? <><Bot size={10} aria-hidden="true" />{doc.agentName}</>
+           : doc.folder === "system" ? <><Settings size={10} aria-hidden="true" />System</>
+           : <><Inbox size={10} aria-hidden="true" />General</>}
+        </span>
         <span>Source: {doc.source}</span>
         <span>{formatRelativeTime(doc.createdAt)}</span>
       </div>
@@ -48,13 +55,15 @@ export default function DocumentViewContent({ doc }: DocumentViewContentProps) {
 
       {/* Actions */}
       <div className="pt-2 border-t border-border">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowSaveMemory(true)}
-          className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
           aria-label="Save to memory"
         >
           <Save size={12} /> Save to Memory
-        </button>
+        </Button>
       </div>
 
       {showSaveMemory && (

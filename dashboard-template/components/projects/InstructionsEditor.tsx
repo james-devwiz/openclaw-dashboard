@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Save, Check } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+
 interface InstructionsEditorProps {
   instructions: string
   onSave: (instructions: string) => void
@@ -47,13 +49,10 @@ export default function InstructionsEditor({ instructions, onSave }: Instruction
             These instructions are prepended to every chat message in this project.
           </p>
         </div>
-        <button
-          onClick={handleManualSave}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
+        <Button variant="outline" size="sm" onClick={handleManualSave}>
           {saved ? <Check size={14} className="text-green-500" /> : <Save size={14} />}
           {saved ? "Saved" : "Save"}
-        </button>
+        </Button>
       </div>
       <textarea
         value={value}

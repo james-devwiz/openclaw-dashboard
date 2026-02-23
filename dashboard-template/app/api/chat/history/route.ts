@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getChatMessages, clearChatMessages, getLatestSession } from "@/lib/db-chat"
+import { getChatMessages, getLatestSession } from "@/lib/db-chat"
 
 export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams
@@ -17,20 +17,4 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(params.get("limit") || "100", 10)
   const messages = getChatMessages(sessionId, limit)
   return NextResponse.json({ messages })
-}
-
-export async function DELETE(request: NextRequest) {
-  const params = new URL(request.url).searchParams
-  let sessionId = params.get("sessionId")
-
-  if (!sessionId) {
-    const topic = params.get("topic")
-    if (!topic) return NextResponse.json({ error: "sessionId or topic required" }, { status: 400 })
-    const latest = getLatestSession(topic)
-    if (!latest) return NextResponse.json({ success: true })
-    sessionId = latest.id
-  }
-
-  clearChatMessages(sessionId)
-  return NextResponse.json({ success: true })
 }

@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { Send, Loader2, Paperclip, X, FolderOpen } from "lucide-react"
 
 import MentionAutocomplete from "@/components/chat/MentionAutocomplete"
+import { cn } from "@/lib/utils"
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea"
 import { useMentionAutocomplete } from "@/hooks/useMentionAutocomplete"
 
@@ -139,11 +140,12 @@ export default function ProjectChatInput({ isStreaming, onSend, projectName }: P
               <button
                 onClick={handleSend}
                 disabled={(!input.trim() && attachments.length === 0) || isStreaming}
-                className={`p-2.5 rounded-xl transition-colors ${
+                className={cn(
+                  "p-2.5 rounded-xl transition-colors",
                   (input.trim() || attachments.length > 0) && !isStreaming
                     ? "bg-blue-600 text-white hover:bg-blue-700"
                     : "bg-muted text-muted-foreground"
-                }`}
+                )}
                 aria-label="Send message"
               >
                 {isStreaming ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

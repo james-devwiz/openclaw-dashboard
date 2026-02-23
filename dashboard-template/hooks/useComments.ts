@@ -27,7 +27,7 @@ export function useComments(taskId: string | null) {
     if (!taskId) return
     try {
       const comment = await createCommentApi({ taskId, content, source })
-      setComments((prev) => [...prev, comment])
+      setComments((prev) => [comment, ...prev])
       return comment
     } catch (err) {
       console.error("Comment create failed:", err)

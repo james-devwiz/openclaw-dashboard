@@ -1,12 +1,13 @@
 "use client" // Requires useState for expand/collapse state
 
 import { useState } from "react"
-import { ChevronDown, Trash2, Tag, ExternalLink } from "lucide-react"
+import { ChevronDown, Trash2, Tag, ExternalLink, FolderOpen, Bot, Settings } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/utils"
-import { CATEGORY_COLORS } from "@/lib/document-constants"
+import { CATEGORY_COLORS, FOLDER_COLORS } from "@/lib/document-constants"
 import MarkdownMessage from "@/components/chat/MarkdownMessage"
 
 import type { Document } from "@/types"
@@ -44,6 +45,21 @@ export function DocumentListItem({ doc, onDelete, onOpen }: DocumentListItemProp
         <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium shrink-0", colors.bg, colors.text)}>
           {doc.category}
         </span>
+        {doc.projectName && (
+          <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shrink-0", FOLDER_COLORS.project.bg, FOLDER_COLORS.project.text)}>
+            <FolderOpen size={10} aria-hidden="true" />{doc.projectName}
+          </span>
+        )}
+        {doc.agentName && (
+          <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shrink-0", FOLDER_COLORS.agent.bg, FOLDER_COLORS.agent.text)}>
+            <Bot size={10} aria-hidden="true" />{doc.agentName}
+          </span>
+        )}
+        {doc.folder === "system" && !doc.projectId && !doc.agentId && (
+          <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium shrink-0", FOLDER_COLORS.system.bg, FOLDER_COLORS.system.text)}>
+            <Settings size={10} aria-hidden="true" />System
+          </span>
+        )}
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-foreground truncate block">{doc.title}</span>
           {!expanded && preview && (
@@ -77,22 +93,26 @@ export function DocumentListItem({ doc, onDelete, onOpen }: DocumentListItemProp
               )}
               <div className="flex items-center gap-3">
                 {onOpen && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={(e) => { e.stopPropagation(); onOpen(doc) }}
-                    className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
                     aria-label={`Open ${doc.title}`}
                   >
                     <ExternalLink size={12} /> Open
-                  </button>
+                  </Button>
                 )}
                 {onDelete && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={(e) => { e.stopPropagation(); onDelete(doc.id) }}
-                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                    className="text-red-500 hover:text-red-600"
                     aria-label={`Delete ${doc.title}`}
                   >
                     <Trash2 size={12} /> Delete
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

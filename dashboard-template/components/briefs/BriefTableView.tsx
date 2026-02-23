@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { useBriefSearch } from "@/hooks/useBriefSearch"
 import { BriefKindTabs } from "@/components/briefs/BriefKindTabs"
 import { BriefSearchBar } from "@/components/briefs/BriefSearchBar"
@@ -22,13 +23,14 @@ export function BriefTableView() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <BriefKindTabs activeKind={kind} onKindChange={setKind} />
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={refetch}
-          className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Refresh results"
         >
           <RefreshCw size={16} aria-hidden="true" />
-        </button>
+        </Button>
       </div>
 
       <BriefSearchBar

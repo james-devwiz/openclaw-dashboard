@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import { CircleDotDashed, CheckCircle2, Loader2 } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 export default function ThinkingIndicator() {
   const [steps, setSteps] = useState(1)
@@ -23,7 +22,7 @@ export default function ThinkingIndicator() {
   return (
     <div className="flex items-start gap-3">
       <Avatar className="h-7 w-7 mt-1">
-        <AvatarFallback className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">{SITE_CONFIG.aiInitials}</AvatarFallback>
+        <AvatarFallback className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">JA</AvatarFallback>
       </Avatar>
       <motion.div
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -33,7 +32,7 @@ export default function ThinkingIndicator() {
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
             <CircleDotDashed size={14} className="text-blue-500" />
           </motion.div>
-          <span className="text-xs font-medium text-muted-foreground">{SITE_CONFIG.aiName} is thinking...</span>
+          <span className="text-xs font-medium text-muted-foreground">AI Assistant is thinking...</span>
         </div>
         <div className="space-y-1.5">
           {items.slice(0, steps).map((step, i) => (

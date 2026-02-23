@@ -3,18 +3,17 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 
 import { searchBriefsApi, deleteBriefApi } from "@/services/brief.service"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import type { Brief, BriefKind, BriefSearchParams } from "@/types"
 
 function daysAgo(n: number): string {
   const d = new Date()
   d.setDate(d.getDate() - n)
-  return d.toLocaleDateString("en-CA", { timeZone: SITE_CONFIG.timezone })
+  return d.toLocaleDateString("en-CA", { timeZone: "Australia/Brisbane" })
 }
 
 function todayStr(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: SITE_CONFIG.timezone })
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Brisbane" })
 }
 
 export function useBriefSearch() {

@@ -4,10 +4,14 @@ import { randomUUID } from "crypto"
 
 import { getDb } from "./db"
 import { logActivity } from "./activity-logger"
-import { deleteTask } from "./db-tasks"
+import { deleteTask, updateTaskStatus } from "./db-tasks"
 import { createComment } from "./db-comments"
+import { getActionByApprovalId, updateActionStatus } from "./db-linkedin"
 
 import type { ApprovalItem, ApprovalCategory, ApprovalStatus, ApprovalPriority, ApprovalRequester } from "@/types"
+
+// Re-export revision + lookup helpers so consumers don't need to change imports
+export { getApprovalForRevision, reviseApproval, deleteApproval, getApprovalByTaskId, getApprovalByLeadId } from "./db-approval-revisions"
 
 interface ApprovalRow {
   id: string
@@ -20,6 +24,7 @@ interface ApprovalRow {
   response: string
   relatedGoalId: string | null
   relatedTaskId: string | null
+  relatedLeadId: string | null
   requestedBy: string
   createdAt: string
   updatedAt: string
@@ -33,6 +38,11 @@ function rowToApproval(row: ApprovalRow): ApprovalItem {
     const task = db.prepare("SELECT name FROM tasks WHERE id = ?").get(row.relatedTaskId) as { name: string } | undefined
     relatedTaskName = task?.name
   }
+  let relatedLeadName: string | undefined
+  if (row.relatedLeadId) {
+    const lead = db.prepare("SELECT companyName FROM leads WHERE id = ?").get(row.relatedLeadId) as { companyName: string } | undefined
+    relatedLeadName = lead?.companyName
+  }
   return {
     id: row.id,
     title: row.title,
@@ -45,6 +55,8 @@ function rowToApproval(row: ApprovalRow): ApprovalItem {
     relatedGoalId: row.relatedGoalId || undefined,
     relatedTaskId: row.relatedTaskId || undefined,
     relatedTaskName,
+    relatedLeadId: row.relatedLeadId || undefined,
+    relatedLeadName,
     requestedBy: row.requestedBy as ApprovalRequester,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -88,6 +100,7 @@ export function createApproval(input: {
   options?: string
   relatedGoalId?: string
   relatedTaskId?: string
+  relatedLeadId?: string
   requestedBy?: ApprovalRequester
 }): ApprovalItem {
   const db = getDb()
@@ -95,8 +108,8 @@ export function createApproval(input: {
   const id = randomUUID()
 
   db.prepare(
-    `INSERT INTO approvals (id, title, category, status, priority, context, options, response, relatedGoalId, relatedTaskId, requestedBy, createdAt, updatedAt)
-     VALUES (?, ?, ?, 'Pending', ?, ?, ?, '', ?, ?, ?, ?, ?)`
+    `INSERT INTO approvals (id, title, category, status, priority, context, options, response, relatedGoalId, relatedTaskId, relatedLeadId, requestedBy, createdAt, updatedAt)
+     VALUES (?, ?, ?, 'Pending', ?, ?, ?, '', ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.title,
@@ -106,6 +119,7 @@ export function createApproval(input: {
     input.options || "",
     input.relatedGoalId || null,
     input.relatedTaskId || null,
+    input.relatedLeadId || null,
     input.requestedBy || "Manual",
     now,
     now
@@ -122,8 +136,8 @@ export function respondToApproval(
   response: string
 ): ApprovalItem | null {
   const db = getDb()
-  const old = db.prepare("SELECT title, relatedTaskId FROM approvals WHERE id = ?").get(id) as
-    { title: string; relatedTaskId: string | null } | undefined
+  const old = db.prepare("SELECT title, relatedTaskId, relatedLeadId, category FROM approvals WHERE id = ?").get(id) as
+    { title: string; relatedTaskId: string | null; relatedLeadId: string | null; category: string } | undefined
   const now = new Date().toISOString()
   db.prepare(
     "UPDATE approvals SET status = ?, response = ?, resolvedAt = ?, updatedAt = ? WHERE id = ?"
@@ -140,23 +154,43 @@ export function respondToApproval(
     if (old?.relatedTaskId) {
       if (status === "Rejected") {
         deleteTask(old.relatedTaskId)
-      } else if (status === "Approved" && response) {
-        createComment({ taskId: old.relatedTaskId, content: response, source: "user" })
+      } else if (status === "Approved") {
+        const taskRow = db.prepare("SELECT status FROM tasks WHERE id = ?")
+          .get(old.relatedTaskId) as { status: string } | undefined
+        if (taskRow?.status === "Backlog") {
+          updateTaskStatus(old.relatedTaskId, "To Be Scheduled")
+        }
+        if (response) {
+          createComment({ taskId: old.relatedTaskId, content: response, source: "user" })
+        }
+      }
+    }
+
+    // Side effects for lead-linked approvals
+    if (old?.relatedLeadId) {
+      handleLeadApprovalSideEffect(old.relatedLeadId, old.category, status)
+    }
+
+    // Side effects for LinkedIn-linked approvals
+    const linkedAction = getActionByApprovalId(id)
+    if (linkedAction) {
+      if (status === "Approved") {
+        updateActionStatus(linkedAction.id, "approved")
+      } else if (status === "Rejected") {
+        updateActionStatus(linkedAction.id, "rejected")
       }
     }
   }
   return row ? rowToApproval(row) : null
 }
 
-export function deleteApproval(id: string): void {
-  const db = getDb()
-  const row = db.prepare("SELECT title FROM approvals WHERE id = ?").get(id) as { title: string } | undefined
-  db.prepare("DELETE FROM approvals WHERE id = ?").run(id)
-  logActivity({ entityType: "approval", entityId: id, entityName: row?.title || "Unknown", action: "deleted" })
-}
-
-export function getApprovalByTaskId(taskId: string): ApprovalItem | null {
-  const db = getDb()
-  const row = db.prepare("SELECT * FROM approvals WHERE relatedTaskId = ? LIMIT 1").get(taskId) as ApprovalRow | undefined
-  return row ? rowToApproval(row) : null
+function handleLeadApprovalSideEffect(leadId: string, category: string, status: ApprovalStatus): void {
+  // Dynamic import to avoid circular dependency (lead-pipeline imports createApproval)
+  import("./lead-pipeline").then(({ handleLeadApprovalResponse }) => {
+    handleLeadApprovalResponse(leadId, category, status).catch((err: Error) => {
+      console.error(`Lead approval side-effect failed for ${leadId}:`, err.message)
+    })
+  }).catch((err) => {
+    console.error(`Failed to load lead-pipeline module:`, err)
+  })
 }

@@ -4,9 +4,9 @@ import { useState } from "react"
 import { ChevronDown, Trash2, BookmarkPlus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+import { Button } from "@/components/ui/button"
 import { cn, formatTime } from "@/lib/utils"
 import { TYPE_COLORS } from "@/lib/brief-constants"
-import { SITE_CONFIG } from "@/lib/site-config"
 import MarkdownMessage from "@/components/chat/MarkdownMessage"
 
 import type { Brief } from "@/types"
@@ -19,10 +19,10 @@ interface BriefListItemProps {
 
 function getDateMismatchLabel(brief: Brief): string | null {
   if (!brief.createdAt) return null
-  const createdAest = new Date(brief.createdAt).toLocaleDateString("en-CA", { timeZone: SITE_CONFIG.timezone })
+  const createdAest = new Date(brief.createdAt).toLocaleDateString("en-CA", { timeZone: "Australia/Brisbane" })
   if (createdAest === brief.date) return null
   const d = new Date(createdAest + "T12:00:00")
-  return `generated ${d.toLocaleDateString(SITE_CONFIG.locale, { weekday: "short", day: "numeric", month: "short", timeZone: SITE_CONFIG.timezone })}`
+  return `generated ${d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "Australia/Brisbane" })}`
 }
 
 export function BriefListItem({ brief, onDelete, onSaveToMemory }: BriefListItemProps) {
@@ -65,22 +65,26 @@ export function BriefListItem({ brief, onDelete, onSaveToMemory }: BriefListItem
               </div>
               <div className="flex items-center gap-3 mt-3">
                 {onSaveToMemory && brief.content && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={(e) => { e.stopPropagation(); onSaveToMemory(brief.content) }}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-blue-600 hover:text-blue-700"
                     aria-label={`Save ${brief.title} to memory`}
                   >
                     <BookmarkPlus size={12} /> Save to Memory
-                  </button>
+                  </Button>
                 )}
                 {onDelete && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={(e) => { e.stopPropagation(); onDelete(brief.id) }}
-                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                    className="text-red-500 hover:text-red-600"
                     aria-label={`Delete ${brief.title}`}
                   >
                     <Trash2 size={12} /> Delete
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

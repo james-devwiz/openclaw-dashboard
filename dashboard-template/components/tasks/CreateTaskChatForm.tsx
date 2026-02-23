@@ -3,7 +3,8 @@
 import { useState, useRef } from "react"
 
 import { Send, Loader2 } from "lucide-react"
-import { SITE_CONFIG } from "@/lib/site-config"
+import { Button } from "@/components/ui/button"
+import { apiFetch } from "@/lib/api-client"
 
 interface CreateTaskChatFormProps {
   onCreated: () => void
@@ -22,14 +23,14 @@ export default function CreateTaskChatForm({ onCreated }: CreateTaskChatFormProp
     abortRef.current = new AbortController()
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await apiFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input.trim(), topic: "tasks" }),
         signal: abortRef.current.signal,
       })
 
-      if (!res.ok || !res.body) { setResponse(`Error communicating with ${SITE_CONFIG.aiName}.`); return }
+      if (!res.ok || !res.body) { setResponse("Error communicating with AI Assistant."); return }
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -68,7 +69,7 @@ export default function CreateTaskChatForm({ onCreated }: CreateTaskChatFormProp
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        {`Describe the task and ${SITE_CONFIG.aiName} will create it for you.`}
+        Describe the task and the AI Assistant will create it for you.
       </p>
       <div className="flex gap-2">
         <textarea
@@ -78,16 +79,17 @@ export default function CreateTaskChatForm({ onCreated }: CreateTaskChatFormProp
           placeholder="Describe the task..."
           className="flex-1 resize-none rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/30"
           rows={3}
-          aria-label={`Task description for ${SITE_CONFIG.aiName}`}
+          aria-label="Task description for AI Assistant"
         />
-        <button
+        <Button
+          size="icon"
           onClick={handleSend}
           disabled={!input.trim() || loading}
-          className="self-end p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label={`Send to ${SITE_CONFIG.aiName}`}
+          className="self-end"
+          aria-label="Send to AI Assistant"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-        </button>
+        </Button>
       </div>
       {response && (
         <div className="rounded-lg bg-muted/50 border border-border p-3 text-sm text-foreground whitespace-pre-wrap max-h-48 overflow-y-auto">

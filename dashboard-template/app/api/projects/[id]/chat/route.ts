@@ -2,7 +2,7 @@ import { NextRequest } from "next/server"
 import { getProject, getProjectFiles } from "@/lib/db-projects"
 import { saveChatMessage } from "@/lib/db-chat"
 import { readWorkspaceFile } from "@/lib/workspace"
-import { createGatewayStream } from "@/lib/chat-stream"
+import { createSmartStream } from "@/lib/chat-stream"
 
 const CHAR_BUDGET = 100_000
 
@@ -13,9 +13,10 @@ export async function POST(
   try {
     const { id: projectId } = await params
     const { message, sessionId, history, model, attachments } = await req.json()
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0
 
-    if (!message || typeof message !== "string") {
-      return new Response(JSON.stringify({ error: "Message is required" }), {
+    if (!message && !hasAttachments) {
+      return new Response(JSON.stringify({ error: "Message or attachments required" }), {
         status: 400, headers: { "Content-Type": "application/json" },
       })
     }
@@ -28,9 +29,14 @@ export async function POST(
     }
 
     const sid = sessionId || "default"
+    const textContent = message || "[file(s) attached]"
 
-    // Save user message
-    saveChatMessage({ topic: "project", sessionId: sid, role: "user", content: message })
+    // Save attachment metadata (name + type only)
+    const attachmentsMeta = hasAttachments
+      ? JSON.stringify(attachments.map((a: { name: string; type: string }) => ({ name: a.name, type: a.type })))
+      : ""
+
+    saveChatMessage({ topic: "project", sessionId: sid, role: "user", content: textContent, attachments: attachmentsMeta })
 
     // Build context from project instructions + linked files
     const contextParts: string[] = []
@@ -72,14 +78,21 @@ export async function POST(
       )
     }
 
-    // Build user content (multipart if attachments)
+    // Build user content — only raster images as image_url
+    const RASTER_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"])
     type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }
-    let userContent: string | ContentPart[] = message
-    if (attachments?.length) {
+    let userContent: string | ContentPart[] = textContent
+    if (hasAttachments) {
       const parts: ContentPart[] = []
       if (message) parts.push({ type: "text", text: message })
       for (const att of attachments) {
-        parts.push({ type: "image_url", image_url: { url: att.dataUrl } })
+        if (RASTER_TYPES.has(att.type)) {
+          parts.push({ type: "image_url", image_url: { url: att.dataUrl } })
+        }
+      }
+      if (parts.length === 0) {
+        const names = attachments.map((a: { name: string }) => a.name).join(", ")
+        parts.push({ type: "text", text: `${message || ""}\n\n[Attached files: ${names}]`.trim() })
       }
       userContent = parts
     }
@@ -94,7 +107,7 @@ export async function POST(
 
     const sessionKey = `command-centre-project-${projectId}-${sid}`
 
-    const response = await createGatewayStream({
+    const response = await createSmartStream({
       messages,
       sessionKey,
       model,

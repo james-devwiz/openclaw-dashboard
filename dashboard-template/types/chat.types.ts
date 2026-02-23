@@ -6,6 +6,7 @@ export interface ChatMessageRow {
   sessionId: string
   role: "user" | "assistant"
   content: string
+  attachments?: string
   createdAt: string
 }
 

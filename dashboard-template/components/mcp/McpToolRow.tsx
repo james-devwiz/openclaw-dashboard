@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, ChevronRight, Play } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import McpToolSchemaView from "./McpToolSchemaView"
 import type { McpTool } from "@/types/mcp.types"
@@ -36,14 +37,13 @@ export default function McpToolRow({ tool, onTryIt }: McpToolRowProps) {
           </div>
           {tool.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{tool.description}</p>}
         </div>
-        <button
+        <Button
           onClick={(e) => { e.stopPropagation(); onTryIt(tool) }}
-          className={cn("flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors",
-            "bg-foreground text-background hover:opacity-90")}
+          size="sm"
           aria-label={`Try ${tool.name}`}
         >
           <Play size={12} aria-hidden="true" /> Try it
-        </button>
+        </Button>
       </button>
 
       {expanded && (

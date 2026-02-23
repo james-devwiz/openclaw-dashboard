@@ -6,6 +6,7 @@ import Markdown from "react-markdown"
 import Link from "next/link"
 import { Copy, Check } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface MarkdownMessageProps {
@@ -34,13 +35,15 @@ function CopyButton({ text }: { text: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="outline"
+      size="icon"
       onClick={handleCopy}
-      className="absolute top-2 right-2 p-1.5 rounded-md bg-background/80 border border-border text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+      className="absolute top-2 right-2 h-7 w-7 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
       aria-label="Copy code"
     >
       {copied ? <Check size={12} /> : <Copy size={12} />}
-    </button>
+    </Button>
   )
 }
 

@@ -28,7 +28,7 @@ function rowToComment(row: CommentRow): Comment {
 export function getComments(taskId: string): Comment[] {
   const db = getDb()
   const rows = db
-    .prepare("SELECT * FROM comments WHERE taskId = ? ORDER BY createdAt ASC")
+    .prepare("SELECT * FROM comments WHERE taskId = ? ORDER BY createdAt DESC")
     .all(taskId) as CommentRow[]
   return rows.map(rowToComment)
 }

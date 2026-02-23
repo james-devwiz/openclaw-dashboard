@@ -42,13 +42,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withActivitySource(request, async () => {
     const body = await request.json()
-    const { name, description, status, priority, category, dueDate, source, goalId } = body
+    const { name, description, status, priority, category, dueDate, source, goalId, complexity, estimatedMinutes, assignee } = body
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 })
     }
 
-    const task = createTask({ name, description, status, priority, category, dueDate, source, goalId })
+    const task = createTask({ name, description, status, priority, category, dueDate, source, goalId, complexity, estimatedMinutes, assignee })
     return NextResponse.json({ task }, { status: 201 })
   })
 }

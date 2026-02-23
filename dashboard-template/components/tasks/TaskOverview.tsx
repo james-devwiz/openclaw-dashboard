@@ -8,7 +8,11 @@ import TaskStatCards from "./TaskStatCards"
 import { ActivityFeed } from "@/components/overview/ActivityFeed"
 import { useActivity } from "@/hooks/useActivity"
 
-export default function TaskOverview() {
+interface TaskOverviewProps {
+  onTaskClick?: (taskId: string) => void
+}
+
+export default function TaskOverview({ onTaskClick }: TaskOverviewProps) {
   const [category, setCategory] = useState<string | undefined>(undefined)
   const { items: activity } = useActivity({ entityType: "task", limit: 15 })
 
@@ -39,7 +43,7 @@ export default function TaskOverview() {
 
       <section>
         <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
-        <ActivityFeed items={activity} />
+        <ActivityFeed items={activity} onTaskClick={onTaskClick} />
       </section>
     </div>
   )

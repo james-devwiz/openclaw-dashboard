@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { useMcpBindings } from "@/hooks/useMcpBindings"
 import { useMcpServers } from "@/hooks/useMcpServers"
 import { getProjectsApi } from "@/services/project.service"
@@ -77,9 +78,9 @@ export default function McpBindingsPanel() {
                 <option value="">Add server...</option>
                 {unboundServers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
-              <button onClick={handleAdd} disabled={!addServer} className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 disabled:opacity-50" aria-label="Add binding">
+              <Button onClick={handleAdd} disabled={!addServer} aria-label="Add binding">
                 <Plus size={14} aria-hidden="true" /> Bind
-              </button>
+              </Button>
             </div>
           )}
         </div>

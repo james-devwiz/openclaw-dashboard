@@ -1,29 +1,44 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getDocuments, getDocumentCount, createDocument, updateDocument, deleteDocument } from "@/lib/db-documents"
+import {
+  getDocuments, getDocumentCount, createDocument, updateDocument, deleteDocument,
+  getDocumentFolderCounts, getDocumentProjectCounts, getDocumentAgentCounts,
+} from "@/lib/db-documents"
 import { withActivitySource } from "@/lib/activity-source"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
+
+  // Lightweight counts endpoint for sidebar
+  if (searchParams.get("counts") === "true") {
+    const folderCounts = getDocumentFolderCounts()
+    const projectCounts = getDocumentProjectCounts()
+    const agentCounts = getDocumentAgentCounts()
+    return NextResponse.json({ folderCounts, projectCounts, agentCounts })
+  }
+
   const category = searchParams.get("category") || undefined
   const search = searchParams.get("search") || undefined
+  const folder = searchParams.get("folder") || undefined
+  const projectId = searchParams.get("projectId") || undefined
+  const agentId = searchParams.get("agentId") || undefined
   const limit = parseInt(searchParams.get("limit") || "50", 10)
   const offset = parseInt(searchParams.get("offset") || "0", 10)
 
-  const documents = getDocuments({ category, search, limit, offset })
-  const total = getDocumentCount({ category, search })
+  const documents = getDocuments({ category, search, folder, projectId, agentId, limit, offset })
+  const total = getDocumentCount({ category, search, folder, projectId, agentId })
   return NextResponse.json({ documents, total })
 }
 
 export async function POST(request: NextRequest) {
   return withActivitySource(request, async () => {
     const body = await request.json()
-    const { category, title, content, tags, source } = body
+    const { category, title, content, tags, source, folder, projectId, agentId } = body
 
     if (!title) {
       return NextResponse.json({ error: "title is required" }, { status: 400 })
     }
 
-    const doc = createDocument({ category, title, content, tags, source })
+    const doc = createDocument({ category, title, content, tags, source, folder, projectId, agentId })
     return NextResponse.json({ document: doc }, { status: 201 })
   })
 }

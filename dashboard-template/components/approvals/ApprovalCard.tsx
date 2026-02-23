@@ -29,9 +29,11 @@ const STATUS_VARIANTS: Record<string, "success" | "error" | "warning" | "seconda
 interface ApprovalCardProps {
   item: ApprovalItem
   onRespond: (id: string, status: ApprovalStatus, response: string) => void
+  onRevise: (id: string, feedback: string) => void
+  revising?: boolean
 }
 
-export default function ApprovalCard({ item, onRespond }: ApprovalCardProps) {
+export default function ApprovalCard({ item, onRespond, onRevise, revising }: ApprovalCardProps) {
   const [expanded, setExpanded] = useState(false)
   const isPending = item.status === "Pending"
 
@@ -40,6 +42,7 @@ export default function ApprovalCard({ item, onRespond }: ApprovalCardProps) {
       className={cn(
         "rounded-xl border border-border bg-card shadow-sm border-l-4 transition-all",
         PRIORITY_COLORS[item.priority] || "border-l-gray-400",
+        revising && "ring-2 ring-blue-500/20",
       )}
     >
       <button
@@ -53,6 +56,7 @@ export default function ApprovalCard({ item, onRespond }: ApprovalCardProps) {
               {item.status}
             </Badge>
             <Badge variant="outline" className="text-[10px]">{item.category}</Badge>
+            {revising && <Badge variant="secondary" className="text-[10px] animate-pulse">Revising...</Badge>}
             <span className="text-xs text-muted-foreground ml-auto">{formatRelativeTime(item.createdAt)}</span>
           </div>
           <h3 className="text-sm font-semibold text-foreground truncate">{item.title}</h3>
@@ -70,18 +74,30 @@ export default function ApprovalCard({ item, onRespond }: ApprovalCardProps) {
       {expanded && (
         <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
           {item.context && (
-            <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-3">
+            <div className={cn(
+              "text-sm text-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-3",
+              revising && "opacity-50",
+            )}>
               {item.context}
             </div>
           )}
 
-          {item.response && (
+          {item.response && isPending && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Revision feedback</p>
+              <div className="text-sm text-foreground rounded-lg p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 whitespace-pre-wrap">
+                {item.response}
+              </div>
+            </div>
+          )}
+
+          {item.response && !isPending && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">
                 {item.status === "Rejected" ? "Rejection reason" : "Response"}
               </p>
               <div className={cn(
-                "text-sm text-foreground rounded-lg p-3",
+                "text-sm text-foreground rounded-lg p-3 whitespace-pre-wrap",
                 item.status === "Rejected"
                   ? "bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30"
                   : "bg-emerald-50 dark:bg-emerald-900/10"
@@ -98,7 +114,11 @@ export default function ApprovalCard({ item, onRespond }: ApprovalCardProps) {
           )}
 
           {isPending && (
-            <ApprovalResponseInput onRespond={(status, response) => onRespond(item.id, status, response)} />
+            <ApprovalResponseInput
+              onRespond={(status, response) => onRespond(item.id, status, response)}
+              onRevise={(feedback) => onRevise(item.id, feedback)}
+              revising={revising}
+            />
           )}
         </div>
       )}

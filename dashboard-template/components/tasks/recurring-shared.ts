@@ -1,7 +1,6 @@
 import { Loader2, XCircle, CheckCircle2 } from "lucide-react"
 
 import type { CronJob, Goal } from "@/types/index"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 export type SortField = "nextRun" | "lastRun"
 export type SortDir = "asc" | "desc"
@@ -26,7 +25,7 @@ export const STATUS_CONFIG = {
 } as const
 
 export function buildChannels(job: { target?: { channel: string }; sessionTarget?: string }): string {
-  const channels: string[] = [SITE_CONFIG.dashboardTitle]
+  const channels: string[] = ["Command Centre"]
   if (job.target?.channel) channels.push(job.target.channel.charAt(0).toUpperCase() + job.target.channel.slice(1))
   return channels.join(", ")
 }

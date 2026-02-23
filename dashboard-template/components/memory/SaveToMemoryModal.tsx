@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { X, Save } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { saveToMemoryApi, getMemoryItemsApi } from "@/services/memory.service"
 
 import type { MemoryItem, MemoryCategory } from "@/types/index"
@@ -78,8 +80,8 @@ export default function SaveToMemoryModal({ content, onClose, onSaved }: SaveToM
         </div>
 
         <div className="flex gap-2 mb-4">
-          <button onClick={() => switchMode("new")} className={`px-3 py-1.5 rounded-lg text-sm ${mode === "new" ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium" : "text-muted-foreground hover:bg-accent"}`}>New file</button>
-          <button onClick={() => switchMode("append")} className={`px-3 py-1.5 rounded-lg text-sm ${mode === "append" ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium" : "text-muted-foreground hover:bg-accent"}`}>Append to existing</button>
+          <button onClick={() => switchMode("new")} className={cn("px-3 py-1.5 rounded-lg text-sm", mode === "new" ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium" : "text-muted-foreground hover:bg-accent")}>New file</button>
+          <button onClick={() => switchMode("append")} className={cn("px-3 py-1.5 rounded-lg text-sm", mode === "append" ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium" : "text-muted-foreground hover:bg-accent")}>Append to existing</button>
         </div>
 
         {mode === "new" ? (
@@ -101,11 +103,11 @@ export default function SaveToMemoryModal({ content, onClose, onSaved }: SaveToM
         {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
 
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
             <Save size={14} />
             {saving ? "Saving..." : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

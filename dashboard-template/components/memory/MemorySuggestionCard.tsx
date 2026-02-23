@@ -2,6 +2,7 @@
 
 import { Check, X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 import type { MemorySuggestion, SuggestionStatus } from "@/types/index"
@@ -29,22 +30,26 @@ export default function MemorySuggestionCard({ suggestion, onRespond }: MemorySu
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => onRespond(suggestion.id, "approved", { title: suggestion.title, content: suggestion.content, targetFile: suggestion.targetFile, targetCategory: suggestion.targetCategory })}
-            className="p-1.5 rounded-md hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 transition-colors"
+            className="h-7 w-7 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30"
             aria-label="Approve suggestion"
             title="Approve"
           >
             <Check size={14} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => onRespond(suggestion.id, "dismissed")}
-            className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
+            className="h-7 w-7 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30"
             aria-label="Dismiss suggestion"
             title="Dismiss"
           >
             <X size={14} />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

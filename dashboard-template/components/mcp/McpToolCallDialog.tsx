@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { X, Play } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import type { McpTool } from "@/types/mcp.types"
 
 interface McpToolCallDialogProps {
@@ -82,9 +83,9 @@ export default function McpToolCallDialog({ tool, onCall, onClose }: McpToolCall
           {Object.keys(properties).length === 0 && <p className="text-xs text-muted-foreground">No parameters required.</p>}
         </div>
 
-        <button onClick={handleCall} disabled={calling} className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 disabled:opacity-50 mb-4">
+        <Button onClick={handleCall} disabled={calling} className="mb-4">
           <Play size={14} aria-hidden="true" /> {calling ? "Calling..." : "Execute"}
-        </button>
+        </Button>
 
         {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700 mb-3">{error}</div>}
 

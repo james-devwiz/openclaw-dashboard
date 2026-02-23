@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback } from "react"
 
 import { getBriefsApi, deleteBriefApi } from "@/services/brief.service"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import type { Brief } from "@/types"
 
 function todayStr(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: SITE_CONFIG.timezone })
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Brisbane" })
 }
 
 export function useBriefs() {

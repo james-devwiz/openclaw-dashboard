@@ -65,8 +65,21 @@ export async function PATCH(
     if (!config.skills) config.skills = {}
     if (!config.skills.entries) config.skills.entries = {}
     const entry = (config.skills.entries[name] || {}) as Record<string, unknown>
-    entry.disabled = !enabled
-    config.skills.entries[name] = entry
+
+    // Gateway rejects 'disabled' key — correct key is 'enabled'
+    delete entry.disabled
+    if (enabled) {
+      delete entry.enabled
+      // Remove empty entries to keep config clean
+      if (Object.keys(entry).length === 0) {
+        delete config.skills.entries[name]
+      } else {
+        config.skills.entries[name] = entry
+      }
+    } else {
+      entry.enabled = false
+      config.skills.entries[name] = entry
+    }
 
     await writeConfig(config)
     await restartGateway()

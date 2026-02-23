@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
 
-import { readConfig, runCommand } from "@/lib/gateway"
+import { readConfig, runCmd } from "@/lib/gateway"
+import { labelFromId, providerFromId } from "@/lib/model-utils"
+import { getDisabledModelIds } from "@/lib/db-models"
 import { BUSINESSES, AGENTS } from "@/lib/architecture-config"
-import type { SkillInfo, AgentWithLiveData, ArchitectureData } from "@/types/index"
+import type { SkillInfo, AgentWithLiveData, ArchitectureData, ModelInfo } from "@/types/index"
 
 function parseSkillsJson(output: string): SkillInfo[] {
   try {
@@ -28,23 +30,61 @@ function parseSkillsJson(output: string): SkillInfo[] {
         },
       }
     })
-  } catch {
+  } catch (error) {
+    console.error("Failed to build skills list:", error)
     return []
   }
+}
+
+function buildModels(config: ReturnType<typeof Object>): ModelInfo[] {
+  const agents = (config as Record<string, unknown>).agents as Record<string, unknown> | undefined
+  const defaults = agents?.defaults as Record<string, unknown> | undefined
+  const modelConfig = defaults?.model as Record<string, unknown> | undefined
+  const modelsCatalog = (defaults?.models || {}) as Record<string, { alias?: string }>
+  const heartbeat = defaults?.heartbeat as Record<string, unknown> | undefined
+
+  const primary = typeof modelConfig === "string" ? modelConfig : (modelConfig?.primary as string | undefined)
+  const fallbacks = (modelConfig?.fallbacks as string[]) || []
+  const heartbeatModel = heartbeat?.model as string | undefined
+  const disabledIds = getDisabledModelIds()
+
+  const seen = new Set<string>()
+  const models: ModelInfo[] = []
+
+  const addModel = (id: string) => {
+    if (!id || seen.has(id)) return
+    seen.add(id)
+    const entry = modelsCatalog[id]
+    models.push({
+      id,
+      alias: entry?.alias || id.split("/").pop()?.split("-")[0] || id,
+      label: labelFromId(id),
+      provider: providerFromId(id),
+      isPrimary: id === primary,
+      isFallback: fallbacks.includes(id),
+      isHeartbeat: id === heartbeatModel,
+      disabled: disabledIds.has(id),
+    })
+  }
+
+  if (primary) addModel(primary)
+  for (const id of Object.keys(modelsCatalog)) addModel(id)
+
+  return models
 }
 
 export async function GET() {
   try {
     const [config, skillsOutput] = await Promise.all([
       readConfig(),
-      runCommand("openclaw skills list --json 2>&1", 10000),
+      runCmd("openclaw", ["skills", "list", "--json"], 10000),
     ])
 
     const skills = parseSkillsJson(skillsOutput)
     const readyCount = skills.filter((s) => s.status === "ready").length
 
-    const agents = config.agents?.defaults
-    const hb = agents?.heartbeat
+    const agentsDefaults = config.agents?.defaults
+    const hb = agentsDefaults?.heartbeat
 
     let heartbeatInterval = 0
     if (hb?.every) {
@@ -55,18 +95,21 @@ export async function GET() {
     const agentsWithLive: AgentWithLiveData[] = AGENTS.map((agent) => ({
       ...agent,
       live: {
-        model: agents?.model?.primary || "unknown",
-        fallbacks: agents?.model?.fallbacks || [],
+        model: agentsDefaults?.model?.primary || "unknown",
+        fallbacks: agentsDefaults?.model?.fallbacks || [],
         heartbeat: { enabled: !!hb?.every, interval: heartbeatInterval },
       },
       readySkillCount: readyCount,
       totalSkillCount: skills.length,
     }))
 
+    const models = buildModels(config)
+
     const data: ArchitectureData = {
       agents: agentsWithLive,
       skills,
       businesses: BUSINESSES,
+      models,
     }
 
     return NextResponse.json(data)

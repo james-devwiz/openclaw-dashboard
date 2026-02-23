@@ -3,38 +3,17 @@
 import { readdir, readFile, stat } from "fs/promises"
 import { join, relative, basename, extname } from "path"
 
+import {
+  WORKSPACE_ROOT,
+  resolveCategory as _resolveCategory,
+  listCategoryFiles as _listCategoryFiles,
+  getCategoryCounts as _getCategoryCounts,
+} from "./workspace-categories"
+
 import type { MemoryItem, MemoryCategory } from "@/types"
 
-export const WORKSPACE_ROOT = process.env.OPENCLAW_WORKSPACE_PATH || "/root/.openclaw/workspace"
-
-const DIR_MAP: Record<string, MemoryCategory> = {
-  business: "business",
-  tmp: "business",
-  orchestration: "orchestration",
-  memory: "memory",
-  research: "research",
-  transcripts: "research",
-  drafts: "research",
-  projects: "projects",
-}
-
-/** Reverse map: category → directories to scan */
-const CATEGORY_DIRS: Record<MemoryCategory, string[]> = {
-  core: [],
-  business: ["business", "tmp"],
-  orchestration: ["orchestration"],
-  memory: ["memory"],
-  research: ["research", "transcripts", "drafts"],
-  projects: ["projects"],
-  uncategorised: [],
-}
-
-export function resolveCategory(relativePath: string): MemoryCategory {
-  const parts = relativePath.split("/")
-  if (parts.length === 1) return "core"
-  const firstDir = parts[0].toLowerCase()
-  return DIR_MAP[firstDir] || "uncategorised"
-}
+// Re-export category constants, WORKSPACE_ROOT, and resolveCategory for consumers
+export { DIR_MAP, CATEGORY_DIRS, WORKSPACE_ROOT, resolveCategory } from "./workspace-categories"
 
 function pathToId(relativePath: string): string {
   return Buffer.from(relativePath).toString("base64url")
@@ -45,7 +24,7 @@ function buildItem(relPath: string, content: string, mtime: Date): MemoryItem {
   return {
     id: pathToId(relPath),
     title,
-    category: resolveCategory(relPath),
+    category: _resolveCategory(relPath),
     content,
     excerpt: content.slice(0, 200).replace(/\n/g, " ").trim(),
     filePath: join(WORKSPACE_ROOT, relPath),
@@ -91,55 +70,6 @@ async function collectRootMdFiles(): Promise<MemoryItem[]> {
   return items
 }
 
-/** Load files for a single category — only scans relevant directories */
-export async function listCategoryFiles(category: MemoryCategory): Promise<MemoryItem[]> {
-  if (category === "core") return collectRootMdFiles()
-
-  if (category === "uncategorised") {
-    const all = await collectMdFiles(WORKSPACE_ROOT, WORKSPACE_ROOT)
-    return all.filter((i) => i.category === "uncategorised")
-  }
-
-  const dirs = CATEGORY_DIRS[category]
-  const items: MemoryItem[] = []
-  for (const dir of dirs) {
-    items.push(...await collectMdFiles(join(WORKSPACE_ROOT, dir), WORKSPACE_ROOT))
-  }
-  return items.sort((a, b) => b.lastModified.localeCompare(a.lastModified))
-}
-
-/** Fast category counts — readdir + stat only, no readFile */
-export async function getCategoryCounts(): Promise<Record<string, number>> {
-  const counts: Record<string, number> = {
-    core: 0, business: 0, orchestration: 0, memory: 0,
-    research: 0, projects: 0, uncategorised: 0,
-  }
-
-  // Count root-level .md files (core)
-  try {
-    const rootEntries = await readdir(WORKSPACE_ROOT, { withFileTypes: true })
-    const knownDirs = new Set(Object.keys(DIR_MAP))
-
-    for (const entry of rootEntries) {
-      if (entry.isFile() && extname(entry.name).toLowerCase() === ".md") {
-        counts.core++
-      } else if (entry.isDirectory() && !knownDirs.has(entry.name.toLowerCase())) {
-        counts.uncategorised += await countMdFilesRecursive(join(WORKSPACE_ROOT, entry.name))
-      }
-    }
-  } catch { /* workspace dir missing */ }
-
-  // Count each category's subdirectories
-  for (const [cat, dirs] of Object.entries(CATEGORY_DIRS)) {
-    if (cat === "core" || cat === "uncategorised") continue
-    for (const dir of dirs) {
-      counts[cat] += await countMdFilesRecursive(join(WORKSPACE_ROOT, dir))
-    }
-  }
-
-  return counts
-}
-
 async function countMdFilesRecursive(dir: string): Promise<number> {
   let count = 0
   let entries
@@ -152,6 +82,16 @@ async function countMdFilesRecursive(dir: string): Promise<number> {
     }
   }
   return count
+}
+
+/** Load files for a single category */
+export async function listCategoryFiles(category: MemoryCategory): Promise<MemoryItem[]> {
+  return _listCategoryFiles(category, collectRootMdFiles, collectMdFiles)
+}
+
+/** Fast category counts */
+export async function getCategoryCounts(): Promise<Record<string, number>> {
+  return _getCategoryCounts(countMdFilesRecursive)
 }
 
 export async function listWorkspaceFiles(): Promise<MemoryItem[]> {
@@ -167,7 +107,8 @@ export async function readWorkspaceFile(relativePath: string): Promise<MemoryIte
     const content = await readFile(resolved, "utf-8")
     const fileStat = await stat(resolved)
     return buildItem(relativePath, content, fileStat.mtime)
-  } catch {
+  } catch (error) {
+    console.error(`Failed to read workspace file ${relativePath}:`, error)
     return null
   }
 }
@@ -183,7 +124,6 @@ export async function getFileReferences(): Promise<Record<string, string[]>> {
 
     for (const source of items) {
       if (source.relativePath === target.relativePath) continue
-      // Check if source content mentions target filename or relative path
       if (
         source.content.includes(filename) ||
         source.content.includes(target.relativePath)

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { SITE_CONFIG } from "@/lib/site-config"
 import CreateTaskManualForm from "./CreateTaskManualForm"
 import CreateTaskChatForm from "./CreateTaskChatForm"
 
@@ -22,7 +21,7 @@ interface CreateTaskModalProps {
 
 const TABS = [
   { id: "manual", label: "Manual" },
-  { id: "chat", label: `Chat with ${SITE_CONFIG.aiNameShort}` },
+  { id: "chat", label: "Chat with AI" },
 ]
 
 export default function CreateTaskModal({ open, onClose, onCreateManual, onChatCreated }: CreateTaskModalProps) {

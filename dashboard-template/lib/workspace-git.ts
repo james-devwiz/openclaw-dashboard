@@ -51,7 +51,8 @@ export async function getFileHistory(relativePath: string, limit = 20): Promise<
       const [hash, date, ...rest] = line.split("|")
       return { hash, date, message: rest.join("|") }
     })
-  } catch {
+  } catch (error) {
+    console.error(`Failed to get file history for ${relativePath}:`, error)
     return []
   }
 }
@@ -66,7 +67,8 @@ export async function getFileDiff(relativePath: string, fromHash: string, toHash
       { cwd: WORKSPACE_ROOT }
     )
     return stdout
-  } catch {
+  } catch (error) {
+    console.error(`Failed to get file diff for ${relativePath}:`, error)
     return ""
   }
 }
@@ -80,7 +82,8 @@ export async function getFileAtCommit(relativePath: string, hash: string): Promi
       { cwd: WORKSPACE_ROOT }
     )
     return stdout
-  } catch {
+  } catch (error) {
+    console.error(`Failed to get file at commit ${hash} for ${relativePath}:`, error)
     return ""
   }
 }

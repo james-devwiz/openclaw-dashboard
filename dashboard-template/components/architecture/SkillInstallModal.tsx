@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { X, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { getSkillInstallSpecs, installSkill } from "@/services/architecture.service"
 import type { SkillInstallSpec } from "@/types/index"
 
@@ -71,10 +73,10 @@ export default function SkillInstallModal({ skillName, onClose, onInstalled }: S
                   <p className="text-sm font-medium text-foreground">{spec.label}</p>
                   <p className="text-xs text-muted-foreground">Kind: {spec.kind}</p>
                 </div>
-                <button
+                <Button
                   onClick={() => handleInstall(spec.id)}
                   disabled={!spec.available || installing !== null}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  size="sm"
                   aria-label={`Install ${spec.label}`}
                 >
                   {installing === spec.id ? (
@@ -84,17 +86,18 @@ export default function SkillInstallModal({ skillName, onClose, onInstalled }: S
                   ) : (
                     <><Download size={12} /> Install</>
                   )}
-                </button>
+                </Button>
               </div>
             ))}
           </div>
         )}
 
         {result && (
-          <div className={`mt-4 flex items-start gap-2 rounded-lg p-3 text-sm ${
+          <div className={cn(
+            "mt-4 flex items-start gap-2 rounded-lg p-3 text-sm",
             result.type === "success" ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
               : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
-          }`}>
+          )}>
             {result.type === "success" ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
             <p className="break-words">{result.message}</p>
           </div>

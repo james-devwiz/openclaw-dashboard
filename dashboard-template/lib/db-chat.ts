@@ -80,7 +80,7 @@ export function getChatMessages(sessionId: string, limit = 100): ChatMessageRow[
   const db = getDb()
   return db
     .prepare(
-      "SELECT id, topic, sessionId, role, content, createdAt FROM chat_messages WHERE sessionId = ? ORDER BY createdAt ASC LIMIT ?"
+      "SELECT id, topic, sessionId, role, content, attachments, createdAt FROM chat_messages WHERE sessionId = ? ORDER BY createdAt ASC LIMIT ?"
     )
     .all(sessionId, limit) as ChatMessageRow[]
 }
@@ -90,14 +90,15 @@ export function saveChatMessage(input: {
   sessionId: string
   role: "user" | "assistant"
   content: string
+  attachments?: string
 }): ChatMessageRow {
   const db = getDb()
   const id = randomUUID()
   const now = new Date().toISOString()
 
   db.prepare(
-    "INSERT INTO chat_messages (id, topic, sessionId, role, content, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(id, input.topic, input.sessionId, input.role, input.content, now)
+    "INSERT INTO chat_messages (id, topic, sessionId, role, content, attachments, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(id, input.topic, input.sessionId, input.role, input.content, input.attachments || "", now)
 
   // Auto-title session from first user message
   if (input.role === "user") {
@@ -145,25 +146,3 @@ export function markTopicRead(topic: string): void {
   ).run(topic, now, now)
 }
 
-export function clearChatMessages(sessionId: string): void {
-  const db = getDb()
-  const session = db.prepare("SELECT topic, title FROM chat_sessions WHERE id = ?").get(sessionId) as
-    | { topic: string; title: string }
-    | undefined
-
-  const count = db
-    .prepare("SELECT COUNT(*) as cnt FROM chat_messages WHERE sessionId = ?")
-    .get(sessionId) as { cnt: number }
-
-  db.prepare("DELETE FROM chat_messages WHERE sessionId = ?").run(sessionId)
-
-  if (session) {
-    logActivity({
-      entityType: "chat",
-      entityId: sessionId,
-      entityName: `Chat: ${session.title}`,
-      action: "deleted",
-      detail: `Cleared ${count.cnt} messages`,
-    })
-  }
-}

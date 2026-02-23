@@ -4,8 +4,9 @@ import { useState } from "react"
 import { X, Pencil, Save, XCircle } from "lucide-react"
 import Markdown from "react-markdown"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { formatRelativeTime, getStaleness } from "@/lib/utils"
+import { cn, formatRelativeTime, getStaleness } from "@/lib/utils"
 import MemoryEditor from "./MemoryEditor"
 import MemoryHistory from "./MemoryHistory"
 
@@ -66,24 +67,24 @@ export default function MemoryDetail({ item, onClose, onSave, referencedBy, onSe
             <h2 className="text-lg font-semibold text-foreground capitalize truncate">{item.title}</h2>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="secondary" className="text-[10px] capitalize">{item.category}</Badge>
-              <span className={`w-2 h-2 rounded-full ${STALENESS_DOT[staleness.level]}`} title={`${staleness.days}d old`} />
+              <span className={cn("w-2 h-2 rounded-full", STALENESS_DOT[staleness.level])} title={`${staleness.days}d old`} />
               <span className="text-xs text-muted-foreground">{formatRelativeTime(item.lastModified)}</span>
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             {editing ? (
               <>
-                <button onClick={handleSave} disabled={saving} className="p-2 rounded-lg hover:bg-accent transition-colors text-green-600" aria-label="Save changes">
+                <Button variant="ghost" size="icon" onClick={handleSave} disabled={saving} className="text-green-600" aria-label="Save changes">
                   <Save size={16} />
-                </button>
-                <button onClick={cancelEdit} className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground" aria-label="Cancel editing">
+                </Button>
+                <Button variant="ghost" size="icon" onClick={cancelEdit} aria-label="Cancel editing">
                   <XCircle size={16} />
-                </button>
+                </Button>
               </>
             ) : onSave ? (
-              <button onClick={startEdit} className="p-2 rounded-lg hover:bg-accent transition-colors" aria-label="Edit file">
+              <Button variant="ghost" size="icon" onClick={startEdit} aria-label="Edit file">
                 <Pencil size={16} />
-              </button>
+              </Button>
             ) : null}
             <button onClick={onClose} className="p-2 rounded-lg hover:bg-accent transition-colors" aria-label="Close file viewer">
               <X size={16} />

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { RefreshCw, Calendar, Table2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import PageHeader from "@/components/layout/PageHeader"
 import { BriefCalendarView } from "@/components/briefs/BriefCalendarView"
@@ -45,13 +46,9 @@ export default function BriefPage() {
               </button>
             </div>
             {view === "calendar" && (
-              <button
-                onClick={calendarState.refetch}
-                className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Refresh briefs"
-              >
+              <Button variant="outline" size="icon" onClick={calendarState.refetch} aria-label="Refresh briefs">
                 <RefreshCw size={16} aria-hidden="true" />
-              </button>
+              </Button>
             )}
           </div>
         }

@@ -1,10 +1,11 @@
+import { apiFetch } from "@/lib/api-client"
 import type { Brief, BriefType, BriefSearchParams, BriefSearchResult } from "@/types"
 
 const BASE_URL = "/api/briefs"
 
 export async function getBriefsApi(date?: string): Promise<Brief[]> {
   const url = date ? `${BASE_URL}?date=${encodeURIComponent(date)}` : BASE_URL
-  const res = await fetch(url)
+  const res = await apiFetch(url)
   if (!res.ok) throw new Error(`Briefs fetch failed: ${res.status}`)
   const data = await res.json()
   return data.briefs || []
@@ -18,7 +19,7 @@ export async function createBriefApi(input: {
   source?: string
   metadata?: string
 }): Promise<Brief> {
-  const res = await fetch(BASE_URL, {
+  const res = await apiFetch(BASE_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -29,7 +30,7 @@ export async function createBriefApi(input: {
 }
 
 export async function deleteBriefApi(id: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+  const res = await apiFetch(`${BASE_URL}?id=${encodeURIComponent(id)}`, { method: "DELETE" })
   if (!res.ok) throw new Error("Failed to delete brief")
 }
 
@@ -46,7 +47,7 @@ export async function searchBriefsApi(params: BriefSearchParams): Promise<BriefS
   if (params.limit) qs.set("limit", String(params.limit))
   if (params.offset) qs.set("offset", String(params.offset))
 
-  const res = await fetch(`${BASE_URL}?${qs.toString()}`)
+  const res = await apiFetch(`${BASE_URL}?${qs.toString()}`)
   if (!res.ok) throw new Error(`Brief search failed: ${res.status}`)
   return res.json()
 }

@@ -2,15 +2,19 @@
 
 import { useState } from "react"
 
-import { Send } from "lucide-react"
+import { Send, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 import type { ApprovalStatus } from "@/types/index"
 
 interface ApprovalResponseInputProps {
   onRespond: (status: ApprovalStatus, response: string) => void
+  onRevise: (feedback: string) => void
+  revising?: boolean
 }
 
-export default function ApprovalResponseInput({ onRespond }: ApprovalResponseInputProps) {
+export default function ApprovalResponseInput({ onRespond, onRevise, revising }: ApprovalResponseInputProps) {
   const [text, setText] = useState("")
   const [rejectPrompt, setRejectPrompt] = useState(false)
 
@@ -29,29 +33,37 @@ export default function ApprovalResponseInput({ onRespond }: ApprovalResponseInp
     }
   }
 
+  const handleRevise = () => {
+    if (!text.trim() || revising) return
+    onRevise(text)
+    setText("")
+  }
+
   return (
     <div className="space-y-3">
       <div className="relative">
         <textarea
           value={text}
           onChange={(e) => { setText(e.target.value); setRejectPrompt(false) }}
-          placeholder={rejectPrompt ? "Please provide a reason for rejecting..." : "Type your response..."}
+          placeholder={rejectPrompt ? "Please provide a reason for rejecting..." : "Give feedback to revise this proposal..."}
           rows={3}
-          className={`w-full resize-none rounded-xl border bg-card p-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${
+          disabled={revising}
+          className={cn(
+            "w-full resize-none rounded-xl border bg-card p-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors disabled:opacity-50",
             rejectPrompt
               ? "border-red-300 focus:ring-red-500/20 placeholder:text-red-400"
               : "border-border focus:ring-claw-blue/20"
-          }`}
+          )}
         />
         <div className="absolute bottom-2 right-2">
-          <button
-            onClick={() => { onRespond("Responded", text); setText("") }}
-            disabled={!text.trim()}
-            className="p-2 rounded-lg bg-claw-blue text-white disabled:opacity-50 hover:bg-claw-blue/90 transition-colors"
-            aria-label="Send response"
+          <Button
+            size="icon"
+            onClick={handleRevise}
+            disabled={!text.trim() || revising}
+            aria-label="Send feedback for AI revision"
           >
-            <Send size={14} />
-          </button>
+            {revising ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+          </Button>
         </div>
       </div>
 
@@ -59,25 +71,38 @@ export default function ApprovalResponseInput({ onRespond }: ApprovalResponseInp
         <p className="text-xs text-red-500">A reason is required so the AI can learn from this decision.</p>
       )}
 
+      {revising && (
+        <p className="text-xs text-blue-500 animate-pulse">AI is revising the proposal based on your feedback...</p>
+      )}
+
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handleQuickAction("Approved")}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+          disabled={revising}
+          className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
         >
           Approve
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleReject}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 transition-colors"
+          disabled={revising}
+          className="bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25"
         >
           Reject
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handleQuickAction("Deferred")}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 transition-colors"
+          disabled={revising}
+          className="bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25"
         >
           Defer
-        </button>
+        </Button>
       </div>
     </div>
   )

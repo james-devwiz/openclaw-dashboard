@@ -5,11 +5,21 @@ import { randomUUID } from "crypto"
 import { getDb } from "./db"
 import { logActivity } from "./activity-logger"
 
-import type { Document, DocumentCategory } from "@/types"
+import type { Document, DocumentCategory, DocumentFolder } from "@/types"
+
+// Re-export search + count helpers so consumers don't need to change imports
+export {
+  getDocuments, getDocumentCount, getDocumentFolderCounts,
+  getDocumentProjectCounts, getDocumentAgentCounts,
+} from "./db-document-search"
+export type { GetDocumentsOpts } from "./db-document-search"
 
 interface DocRow {
   id: string
   category: string
+  folder: string
+  projectId: string | null
+  agentId: string | null
   title: string
   content: string
   tags: string
@@ -22,6 +32,9 @@ function rowToDoc(row: DocRow): Document {
   return {
     id: row.id,
     category: row.category as DocumentCategory,
+    folder: (row.folder || "general") as DocumentFolder,
+    projectId: row.projectId || undefined,
+    agentId: row.agentId || undefined,
     title: row.title,
     content: row.content,
     tags: row.tags,
@@ -29,49 +42,6 @@ function rowToDoc(row: DocRow): Document {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }
-}
-
-export function getDocuments(opts?: { category?: string; search?: string; limit?: number; offset?: number }): Document[] {
-  const db = getDb()
-  const conditions: string[] = ["1=1"]
-  const params: (string | number)[] = []
-
-  if (opts?.category) {
-    conditions.push("category = ?")
-    params.push(opts.category)
-  }
-  if (opts?.search) {
-    conditions.push("(title LIKE ? OR tags LIKE ? OR content LIKE ?)")
-    const term = `%${opts.search}%`
-    params.push(term, term, term)
-  }
-
-  const limit = opts?.limit || 50
-  const offset = opts?.offset || 0
-  params.push(limit, offset)
-
-  const rows = db.prepare(
-    `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY createdAt DESC LIMIT ? OFFSET ?`
-  ).all(...params) as DocRow[]
-  return rows.map(rowToDoc)
-}
-
-export function getDocumentCount(opts?: { category?: string; search?: string }): number {
-  const db = getDb()
-  const conditions: string[] = ["1=1"]
-  const params: string[] = []
-
-  if (opts?.category) {
-    conditions.push("category = ?")
-    params.push(opts.category)
-  }
-  if (opts?.search) {
-    conditions.push("(title LIKE ? OR tags LIKE ? OR content LIKE ?)")
-    const term = `%${opts.search}%`
-    params.push(term, term, term)
-  }
-
-  return (db.prepare(`SELECT COUNT(*) as c FROM documents WHERE ${conditions.join(" AND ")}`).get(...params) as { c: number }).c
 }
 
 export function getDocumentById(id: string): Document | null {
@@ -86,15 +56,24 @@ export function createDocument(input: {
   content?: string
   tags?: string
   source?: Document["source"]
+  folder?: DocumentFolder
+  projectId?: string
+  agentId?: string
 }): Document {
   const db = getDb()
   const id = randomUUID()
   const now = new Date().toISOString()
+  const folder = input.projectId ? "general" : input.agentId ? "general" : (input.folder || "general")
 
   db.prepare(
-    `INSERT INTO documents (id, category, title, content, tags, source, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, input.category || "Notes", input.title, input.content || "", input.tags || "", input.source || "manual", now, now)
+    `INSERT INTO documents (id, category, folder, projectId, agentId, title, content, tags, source, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    id, input.category || "Notes", folder,
+    input.projectId || null, input.agentId || null,
+    input.title, input.content || "", input.tags || "",
+    input.source || "manual", now, now
+  )
 
   logActivity({ entityType: "content", entityId: id, entityName: input.title, action: "created", detail: `Document: ${input.category || "Notes"}` })
   return rowToDoc(db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocRow)
@@ -102,7 +81,7 @@ export function createDocument(input: {
 
 export function updateDocument(
   id: string,
-  updates: Partial<Pick<Document, "category" | "title" | "content" | "tags">>
+  updates: Partial<Pick<Document, "category" | "title" | "content" | "tags" | "folder" | "projectId" | "agentId">>
 ): Document | null {
   const db = getDb()
   const now = new Date().toISOString()
@@ -113,6 +92,16 @@ export function updateDocument(
   if (updates.title !== undefined) { fields.push("title = ?"); values.push(updates.title) }
   if (updates.content !== undefined) { fields.push("content = ?"); values.push(updates.content) }
   if (updates.tags !== undefined) { fields.push("tags = ?"); values.push(updates.tags) }
+  if (updates.folder !== undefined) { fields.push("folder = ?"); values.push(updates.folder) }
+
+  // Mutual exclusivity: setting projectId clears agentId and vice versa
+  if (updates.projectId !== undefined) {
+    fields.push("projectId = ?"); values.push(updates.projectId || null)
+    fields.push("agentId = ?"); values.push(null)
+  } else if (updates.agentId !== undefined) {
+    fields.push("agentId = ?"); values.push(updates.agentId || null)
+    fields.push("projectId = ?"); values.push(null)
+  }
 
   values.push(id)
   db.prepare(`UPDATE documents SET ${fields.join(", ")} WHERE id = ?`).run(...values)

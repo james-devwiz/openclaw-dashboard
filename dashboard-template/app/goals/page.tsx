@@ -4,6 +4,7 @@ import { Suspense, useState, useCallback, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { Plus, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import PageHeader from "@/components/layout/PageHeader"
 import TaskOverview from "@/components/tasks/TaskOverview"
@@ -50,6 +51,10 @@ function GoalsPageContent() {
   }, [activeTab])
 
   const handleTaskClick = useCallback((task: Task) => setSelectedTask(task), [])
+  const handleTaskClickById = useCallback((taskId: string) => {
+    const task = columns.flatMap((c) => c.tasks).find((t) => t.id === taskId)
+    if (task) setSelectedTask(task)
+  }, [columns])
   const handleTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
     updateTask(taskId, updates)
     setSelectedTask((prev) => prev?.id === taskId ? { ...prev, ...updates } as Task : prev)
@@ -80,27 +85,24 @@ function GoalsPageContent() {
                 </button>
               ))}
             </div>
-            <button
-              onClick={handleNewClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
-              aria-label="Create new item"
-            >
+            <Button size="sm" onClick={handleNewClick} aria-label="Create new item">
               <Plus size={14} aria-hidden="true" />
               New
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => { refetchTasks(); refetchGoals() }}
-              className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Refresh data"
             >
               <RefreshCw size={16} aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         }
       />
 
       <div role="tabpanel" aria-label={`${activeTab} panel`}>
-        {activeTab === "overview" && <TaskOverview />}
+        {activeTab === "overview" && <TaskOverview onTaskClick={handleTaskClickById} />}
         {activeTab === "goals" && <GoalsTab />}
         {activeTab === "tasks" && (
           <TaskKanban columns={columns} onMove={moveTask} onTaskClick={handleTaskClick} onDelete={removeTask} />

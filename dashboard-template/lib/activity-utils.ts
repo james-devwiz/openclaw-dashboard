@@ -19,7 +19,6 @@ import {
 
 import type { LucideIcon } from "lucide-react"
 import type { ActivityItem, ActivityEntityType, ActivityAction, ActivityGroup } from "@/types/activity.types"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 export function getActivityConfig(entityType: ActivityEntityType): {
   icon: LucideIcon
@@ -75,7 +74,7 @@ export function groupActivitiesByDate(items: ActivityItem[]): ActivityGroup[] {
     let label: string
     if (d.toDateString() === today) label = "Today"
     else if (d.toDateString() === yesterday) label = "Yesterday"
-    else label = d.toLocaleDateString(SITE_CONFIG.locale, { day: "numeric", month: "short" })
+    else label = d.toLocaleDateString("en-AU", { day: "numeric", month: "short" })
 
     const existing = groups.get(label)
     if (existing) existing.push(item)

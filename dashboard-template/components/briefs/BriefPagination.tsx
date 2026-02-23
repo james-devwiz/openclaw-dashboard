@@ -2,6 +2,8 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+
 interface BriefPaginationProps {
   page: number
   pageSize: number
@@ -20,23 +22,25 @@ export function BriefPagination({ page, pageSize, total, onPageChange }: BriefPa
     <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
       <span>Showing {start}–{end} of {total}</span>
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-medium disabled:opacity-40 hover:text-foreground transition-colors"
           aria-label="Previous page"
         >
           <ChevronLeft size={14} /> Previous
-        </button>
+        </Button>
         <span className="text-xs">{page} / {totalPages}</span>
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-medium disabled:opacity-40 hover:text-foreground transition-colors"
           aria-label="Next page"
         >
           Next <ChevronRight size={14} />
-        </button>
+        </Button>
       </div>
     </div>
   )

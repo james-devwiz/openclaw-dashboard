@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import type { McpServer, McpTransport, McpAuthType, CreateMcpServerInput, UpdateMcpServerInput } from "@/types/mcp.types"
 
 interface McpServerFormProps {
@@ -104,10 +105,10 @@ export default function McpServerForm({ server, onSubmit, onClose }: McpServerFo
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-border hover:bg-muted transition-colors">Cancel</button>
-            <button type="submit" disabled={saving || !name} className="px-4 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+            <Button type="button" onClick={onClose} variant="outline">Cancel</Button>
+            <Button type="submit" disabled={saving || !name}>
               {saving ? "Saving..." : server ? "Update" : "Add Server"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

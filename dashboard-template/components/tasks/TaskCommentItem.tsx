@@ -1,8 +1,8 @@
 "use client" // Requires interactive delete handler
 
 import { User, Zap, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { formatRelativeTime } from "@/lib/utils"
-import { SITE_CONFIG } from "@/lib/site-config"
 
 import type { Comment } from "@/types/index"
 
@@ -25,15 +25,17 @@ export default function TaskCommentItem({ comment, onDelete }: TaskCommentItemPr
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-foreground">{isUser ? "You" : SITE_CONFIG.aiName}</span>
+          <span className="text-xs font-medium text-foreground">{isUser ? "You" : "AI Assistant"}</span>
           <span className="text-xs text-muted-foreground">{formatRelativeTime(comment.createdAt)}</span>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => onDelete(comment.id)}
-            className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent transition-all"
+            className="ml-auto opacity-0 group-hover:opacity-100 h-6 w-6 p-1"
             aria-label="Delete comment"
           >
             <Trash2 size={12} className="text-muted-foreground" />
-          </button>
+          </Button>
         </div>
         <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">{comment.content}</p>
       </div>

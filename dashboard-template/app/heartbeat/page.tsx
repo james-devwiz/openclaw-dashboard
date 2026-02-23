@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import PageHeader from "@/components/layout/PageHeader"
 import { HeartbeatStatCards } from "@/components/heartbeat/HeartbeatStatCards"
 import { HeartbeatConfig } from "@/components/heartbeat/HeartbeatConfig"
@@ -17,13 +18,9 @@ export default function HeartbeatPage() {
         title="Heartbeat Monitor"
         subtitle="Track heartbeat history and system health"
         actions={
-          <button
-            onClick={refetch}
-            className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Refresh heartbeats"
-          >
+          <Button variant="outline" size="icon" onClick={refetch} aria-label="Refresh heartbeats">
             <RefreshCw size={16} aria-hidden="true" />
-          </button>
+          </Button>
         }
       />
 

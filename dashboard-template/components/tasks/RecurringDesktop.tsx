@@ -1,10 +1,12 @@
 "use client" // Requires interactive onClick handlers for row expand, trigger, sort, goal select
 
+import Link from "next/link"
 import {
   Play, Clock, ChevronDown, ChevronRight, Check, ArrowUp, ArrowDown,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cronToHuman } from "@/lib/task-constants"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import { STATUS_CONFIG, buildChannels } from "./recurring-shared"
@@ -87,8 +89,10 @@ export default function RecurringDesktop({ jobs, goals, expanded, triggered, sor
                     <GoalSelect jobName={job.name} goalId={job.goalId} goals={goals} onChange={onGoalChange} />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{cronToHuman(job.schedule)}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline" className="text-[10px] font-mono">{job.model}</Badge>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <Link href="/architecture?tab=models" aria-label={`View model ${job.model} in Architecture`}>
+                      <Badge variant="outline" className="text-[10px] font-mono hover:bg-blue-500/10 hover:border-blue-500/30 cursor-pointer transition-colors">{job.model}</Badge>
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">{buildChannels(job)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{job.lastRun ? formatRelativeTime(job.lastRun) : "-"}</td>
@@ -104,19 +108,18 @@ export default function RecurringDesktop({ jobs, goals, expanded, triggered, sor
                     )}
                   </td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => onTrigger(job.name)}
                       disabled={job.enabled === false || justTriggered}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs",
-                        justTriggered
-                          ? "border-green-500/30 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                          : "border-border hover:bg-accent hover:border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        justTriggered && "border-green-500/30 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
                       )}
                       aria-label={`Trigger ${job.name} now`}
                     >
                       {justTriggered ? <><Check size={10} aria-hidden="true" />Triggered</> : <><Play size={10} aria-hidden="true" />Run</>}
-                    </button>
+                    </Button>
                   </td>
                 </tr>
                 {isOpen && (

@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-import { SITE_CONFIG } from "@/lib/site-config"
+import { Button } from "@/components/ui/button"
 
 interface BriefDateNavProps {
   date: string
@@ -17,17 +17,17 @@ function shiftDate(date: string, days: number): string {
 
 function formatDisplayDate(date: string): string {
   const d = new Date(date + "T12:00:00")
-  return d.toLocaleDateString(SITE_CONFIG.locale, {
+  return d.toLocaleDateString("en-AU", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: SITE_CONFIG.timezone,
+    timeZone: "Australia/Brisbane",
   })
 }
 
 function todayStr(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: SITE_CONFIG.timezone })
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Brisbane" })
 }
 
 export function BriefDateNav({ date, onChange }: BriefDateNavProps) {
@@ -35,13 +35,14 @@ export function BriefDateNav({ date, onChange }: BriefDateNavProps) {
 
   return (
     <div className="flex items-center gap-3 mb-6">
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => onChange(shiftDate(date, -1))}
-        className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Previous day"
       >
         <ChevronLeft size={16} />
-      </button>
+      </Button>
 
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <span className="text-sm font-medium text-foreground truncate">{formatDisplayDate(date)}</span>
@@ -63,13 +64,14 @@ export function BriefDateNav({ date, onChange }: BriefDateNavProps) {
         aria-label="Select date"
       />
 
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => onChange(shiftDate(date, 1))}
-        className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Next day"
       >
         <ChevronRight size={16} />
-      </button>
+      </Button>
     </div>
   )
 }

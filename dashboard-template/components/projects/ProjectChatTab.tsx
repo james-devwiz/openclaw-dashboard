@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Loader2, FolderOpen, History, Plus, Trash2 } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import ChatMessageList from "@/components/chat/ChatMessageList"
 import ChatHistoryDrawer from "@/components/chat/ChatHistoryDrawer"
 import ModelSelector from "@/components/chat/ModelSelector"
@@ -32,29 +33,32 @@ export default function ProjectChatTab({ projectId, projectName }: ProjectChatTa
           />
         </div>
         <div className="flex items-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={chat.createNewSession}
-            className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             aria-label="New chat session"
           >
             <Plus size={16} />
-          </button>
+          </Button>
           {chat.messages.length > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={chat.clearMessages}
-              className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
               aria-label="Clear messages"
             >
               <Trash2 size={16} />
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsHistoryOpen(true)}
-            className="p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             aria-label="Chat history"
           >
             <History size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 

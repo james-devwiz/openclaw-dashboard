@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getDb } from "@/lib/db"
 import { logActivity } from "@/lib/activity-logger"
 
-import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource } from "@/types"
+import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskSource, TaskAssignee } from "@/types"
 
 interface TaskRow {
   id: string; name: string; description: string; status: string
@@ -25,7 +25,7 @@ export async function POST() {
   }
 
   const now = new Date().toISOString()
-  db.prepare("UPDATE tasks SET status = 'In Progress', updatedAt = ? WHERE id = ?").run(now, task.id)
+  db.prepare("UPDATE tasks SET status = 'In Progress', assignee = 'AI Assistant', updatedAt = ? WHERE id = ?").run(now, task.id)
   logActivity({
     entityType: "task", entityId: task.id, entityName: task.name,
     action: "status_changed", detail: "Status: To Do This Week → In Progress (AI pickup)",
@@ -41,6 +41,7 @@ export async function POST() {
     category: task.category as TaskCategory,
     dueDate: task.dueDate || undefined,
     source: task.source as TaskSource,
+    assignee: "AI Assistant",
     goalId: task.goalId || "general",
     createdAt: task.createdAt,
     updatedAt: now,

@@ -8,8 +8,8 @@ Add five optional, self-contained modules that extend the Command Centre for spe
 
 **What you get:**
 - **Documents** — AI document repository with 6 categories, full-text search, and markdown rendering
-- **Content Centre Ideas** — AI-vetted idea pipeline with scoring, 4 categories, and promote-to-pipeline/task flows
-- **Content Studio** — Multi-platform publishing with per-field AI drafts, LinkedIn publishing, and media upload
+- **Ideas** — AI-vetted idea pipeline with scoring, 4 categories, and promote-to-pipeline/task flows
+- **Content Studio** — Multi-platform publishing with per-field AI drafts, LinkedIn publishing, and media upload. Includes the Ideas tab (21.2) as a built-in view
 - **LinkedIn Intelligence** — AI-powered LinkedIn CRM with WAMP scoring, auto-categorization, draft generation, and connection automation (requires Unipile account)
 - **Lead Generation** — 9-stage outreach pipeline with Apollo enrichment, AI outreach generation, call tracking, and follow-up automation
 
@@ -140,9 +140,9 @@ In `app/api/search/route.ts`, add `getDocuments({ search: query, limit: 5 })` to
 
 ---
 
-### 21.2 Content Centre Ideas — AI-Vetted Idea Pipeline
+### 21.2 Ideas — AI-Vetted Idea Pipeline
 
-An Ideas tab within the existing Content Centre page. Ideas are submitted, AI-vetted for quality (score 1-10), and then promoted to the content pipeline or task board.
+An Ideas tab within Content Studio. Ideas are submitted, AI-vetted for quality (score 1-10), and then promoted to the Content Studio pipeline (as posts) or to the task board.
 
 #### 21.2.1 Types — `types/content.types.ts` additions
 
@@ -276,7 +276,7 @@ Reuses `BriefPagination` from Phase 10.
 
 ### 21.3 Content Studio — Multi-Platform Publishing
 
-A full content creation and publishing pipeline. Replaces Content Centre for publishable content. Three tables (`posts`, `post_platforms`, `post_media`), 6 formats, 7 stages, 4 platforms, per-field AI draft generation, and LinkedIn publishing via Unipile.
+A full content creation and publishing pipeline. Three tables (`posts`, `post_platforms`, `post_media`), 6 formats, 7 stages, 4 platforms, per-field AI draft generation, and LinkedIn publishing via Unipile.
 
 #### 21.3.1 Types — `types/studio.types.ts`
 

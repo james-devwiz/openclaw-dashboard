@@ -1,6 +1,7 @@
 "use client" // Requires React Context API and useDarkMode hook for theme state management
 
 import React, { createContext, useContext, useState } from "react"
+import { MotionConfig } from "framer-motion"
 
 import { useDarkMode } from "@/hooks/useDarkMode"
 
@@ -24,15 +25,17 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <LayoutContext.Provider
-      value={{
-        isDark,
-        toggleDark: toggle,
-        isMobileMenuOpen,
-        setMobileMenuOpen,
-      }}
-    >
-      {children}
-    </LayoutContext.Provider>
+    <MotionConfig reducedMotion="user">
+      <LayoutContext.Provider
+        value={{
+          isDark,
+          toggleDark: toggle,
+          isMobileMenuOpen,
+          setMobileMenuOpen,
+        }}
+      >
+        {children}
+      </LayoutContext.Provider>
+    </MotionConfig>
   )
 }

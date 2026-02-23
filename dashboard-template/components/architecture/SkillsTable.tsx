@@ -59,6 +59,7 @@ export default function SkillsTable({ skills, onRefresh }: SkillsTableProps) {
       onRefresh()
     } catch (err) {
       console.error("Toggle failed:", err)
+      alert(`Failed to toggle ${skill.name}. Please check the gateway logs.`)
     } finally {
       setBusySkill(null)
     }

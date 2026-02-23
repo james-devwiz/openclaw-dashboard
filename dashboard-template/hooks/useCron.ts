@@ -25,12 +25,14 @@ export function useCron() {
   }, [])
 
   const triggerJob = useCallback(
-    async (jobName: string) => {
+    async (jobName: string): Promise<boolean> => {
       try {
         await triggerCronJobApi(jobName)
         setTimeout(fetchJobs, 2000)
+        return true
       } catch (err) {
         console.error("Cron trigger failed:", err)
+        return false
       }
     },
     [fetchJobs]

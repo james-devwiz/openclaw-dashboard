@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { readFile } from "fs/promises"
 
-import { runCommand } from "@/lib/gateway"
+import { runCmd } from "@/lib/gateway"
 import type { SkillInstallSpec } from "@/types/index"
 
 const MANAGED_DIR = "/root/.openclaw/skills"
@@ -25,7 +25,8 @@ function parseMetadataJson(raw: string): Record<string, unknown> | null {
   const jsonCandidate = afterMeta.slice(braceStart)
   try {
     return JSON.parse(stripTrailingCommas(jsonCandidate))
-  } catch {
+  } catch (error) {
+    console.error("Failed to parse skill metadata JSON:", error)
     return null
   }
 }
@@ -103,25 +104,35 @@ export async function POST(
   }
 
   try {
-    let cmd: string
+    let bin: string
+    let args: string[]
     switch (spec.kind) {
       case "go":
         if (!spec.module || !/^[a-zA-Z0-9._/@-]+$/.test(spec.module)) {
           return NextResponse.json({ error: "Invalid go module" }, { status: 400 })
         }
-        cmd = `go install ${spec.module}`
+        bin = "go"
+        args = ["install", spec.module]
         break
       case "npm":
         if (!spec.package || !/^[@a-zA-Z0-9._/-]+$/.test(spec.package)) {
           return NextResponse.json({ error: "Invalid npm package" }, { status: 400 })
         }
-        cmd = `npm install -g ${spec.package}`
+        bin = "npm"
+        args = ["install", "-g", spec.package]
+        break
+      case "uv":
+        if (!spec.package || !/^[@a-zA-Z0-9._\[\] /-]+$/.test(spec.package)) {
+          return NextResponse.json({ error: "Invalid uv package" }, { status: 400 })
+        }
+        bin = "uv"
+        args = ["pip", "install", "--system", "--break-system-packages", spec.package]
         break
       default:
         return NextResponse.json({ error: `Install kind "${spec.kind}" not yet supported` }, { status: 400 })
     }
 
-    const output = await runCommand(`${cmd} 2>&1`, 120000)
+    const output = await runCmd(bin, args, 120000)
     return NextResponse.json({ success: true, message: output || "Installed successfully" })
   } catch (err) {
     console.error("Skill install error:", err)

@@ -2,13 +2,14 @@
 
 import { RefreshCw, WifiOff } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import PageHeader from "@/components/layout/PageHeader"
 import { StatusCards } from "@/components/overview/StatusCards"
 import { ChannelStatusCard } from "@/components/overview/ChannelStatusCard"
 import { SystemResourcesCard } from "@/components/overview/SystemResourcesCard"
 import { ActivityFeed } from "@/components/overview/ActivityFeed"
 import { useGateway } from "@/hooks/useGateway"
-import { SITE_CONFIG } from "@/lib/site-config"
 import { useTasks } from "@/hooks/useTasks"
 import { useCron } from "@/hooks/useCron"
 import { useActivity } from "@/hooks/useActivity"
@@ -38,15 +39,16 @@ export default function OverviewPage() {
     <div>
       <PageHeader
         title="Command Centre"
-        subtitle={`${SITE_CONFIG.aiName} — OpenClaw Dashboard`}
+        subtitle="AI Assistant — OpenClaw Dashboard"
         actions={
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => refetch()}
-            className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Refresh dashboard data"
           >
             <RefreshCw size={16} aria-hidden="true" />
-          </button>
+          </Button>
         }
       />
 
@@ -70,7 +72,7 @@ export default function OverviewPage() {
         </div>
         <div className="p-6 rounded-xl border border-border bg-card shadow-sm">
           <h3 className="font-medium text-muted-foreground mb-1">Pending Approvals</h3>
-          <p className={`text-2xl font-bold ${pendingCount > 0 ? "text-red-600 dark:text-red-400" : "text-foreground"}`}>
+          <p className={cn("text-2xl font-bold", pendingCount > 0 ? "text-red-600 dark:text-red-400" : "text-foreground")}>
             {pendingCount}
           </p>
           <p className="text-sm text-muted-foreground mt-1">

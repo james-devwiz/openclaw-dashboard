@@ -31,8 +31,8 @@ export function postProcessChatResponse(
             `data: ${JSON.stringify({ meta: { brief_updated: true, briefId: brief.id, briefType: brief.briefType } })}\n\n`,
           )
         }
-      } catch {
-        // Fail silently
+      } catch (error) {
+        console.error("Failed to update brief from chat:", error)
       }
     } else {
       // Check for new brief creation
@@ -49,8 +49,8 @@ export function postProcessChatResponse(
           events.push(
             `data: ${JSON.stringify({ meta: { brief_saved: true, briefId: brief.id, briefType: brief.briefType } })}\n\n`,
           )
-        } catch {
-          // Fail silently
+        } catch (error) {
+          console.error("Failed to create brief from chat:", error)
         }
       }
       // No markers = no auto-save (intentional — conversational messages don't create briefs)
@@ -71,8 +71,8 @@ export function postProcessChatResponse(
             status: "Backlog",
           })
           created.push({ id: task.id, name: task.name })
-        } catch {
-          // Skip individual failures
+        } catch (error) {
+          console.error(`Failed to create task "${t.name}" from chat:`, error)
         }
       }
       if (created.length > 0) {

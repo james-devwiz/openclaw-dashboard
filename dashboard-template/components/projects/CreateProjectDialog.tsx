@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import type { CreateProjectInput } from "@/types/index"
 
 const COLORS = [
@@ -86,7 +88,7 @@ export default function CreateProjectDialog({ onClose, onCreate }: CreateProject
                   key={c.id}
                   type="button"
                   onClick={() => setColor(c.id)}
-                  className={`size-8 rounded-full ${c.class} transition-all ${color === c.id ? "ring-2 ring-offset-2 ring-blue-500" : "opacity-60 hover:opacity-100"}`}
+                  className={cn("size-8 rounded-full transition-all", c.class, color === c.id ? "ring-2 ring-offset-2 ring-blue-500" : "opacity-60 hover:opacity-100")}
                   aria-label={c.label}
                 />
               ))}
@@ -94,16 +96,15 @@ export default function CreateProjectDialog({ onClose, onCreate }: CreateProject
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" type="button" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={!name.trim() || submitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? "Creating..." : "Create Project"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

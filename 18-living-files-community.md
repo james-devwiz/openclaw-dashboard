@@ -124,9 +124,9 @@ After completing all phases, every one of these should be true:
 - [ ] **Goals & Tasks:** Create a task linked to a goal, see it in kanban
 - [ ] **Goals & Tasks:** Selecting a goal filters the kanban board
 - [ ] **Goals & Tasks:** Drag task between columns updates status
-- [ ] **Content Centre:** Create content item, drag through 6 pipeline stages
-- [ ] **Content Centre:** Calendar view shows scheduled content
-- [ ] **Content Centre:** Draft viewer slide-over renders markdown
+- [ ] **Content Studio:** Create a post, drag through pipeline stages
+- [ ] **Content Studio:** Calendar view shows scheduled posts
+- [ ] **Content Studio:** Ideas tab with AI vetting and promote-to-pipeline flow
 - [ ] **Approvals:** Items render with priority-colored left borders
 - [ ] **Approvals:** Respond via text input + quick action buttons (Approve/Reject/Defer)
 - [ ] **Approvals:** Sidebar badge shows pending count, auto-updates every 30s

@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react"
 import { Plus, Search } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { useMcpServers } from "@/hooks/useMcpServers"
 import McpServerCard from "./McpServerCard"
 import McpServerForm from "./McpServerForm"
@@ -72,15 +74,15 @@ export default function McpServerList() {
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.id} onClick={() => setStatusFilter(f.id)}
-              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${statusFilter === f.id ? "bg-foreground text-background font-medium" : "text-muted-foreground hover:bg-muted"}`}
+              className={cn("px-2.5 py-1 text-xs rounded-md transition-colors", statusFilter === f.id ? "bg-foreground text-background font-medium" : "text-muted-foreground hover:bg-muted")}
             >
               {f.label}
             </button>
           ))}
         </div>
-        <button onClick={() => { setEditingServer(null); setFormOpen(true) }} className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity" aria-label="Add MCP server">
+        <Button onClick={() => { setEditingServer(null); setFormOpen(true) }} aria-label="Add MCP server">
           <Plus size={14} aria-hidden="true" /> Add Server
-        </button>
+        </Button>
       </div>
 
       {filtered.length === 0 ? (

@@ -1,5 +1,8 @@
 // Shared gateway SSE streaming utility — used by /api/chat and /api/projects/[id]/chat
 
+import { providerKeyFromId } from "@/lib/model-utils"
+import { createDirectProviderStream } from "@/lib/provider-stream"
+
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL || "http://localhost:18789"
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || ""
 
@@ -13,16 +16,17 @@ interface PostProcessResult {
   chatContent: string
 }
 
-interface GatewayStreamOptions {
+export interface GatewayStreamOptions {
   messages: StreamMessage[]
   sessionKey: string
   model?: string
+  initialMeta?: Record<string, unknown>
   onComplete?: (chatContent: string) => void
   postProcess?: (fullResponse: string) => PostProcessResult
 }
 
 export async function createGatewayStream(options: GatewayStreamOptions): Promise<Response> {
-  const { messages, sessionKey, model, onComplete, postProcess } = options
+  const { messages, sessionKey, model, initialMeta, onComplete, postProcess } = options
 
   const res = await fetch(`${GATEWAY_URL}/v1/chat/completions`, {
     method: "POST",
@@ -41,8 +45,9 @@ export async function createGatewayStream(options: GatewayStreamOptions): Promis
 
   if (!res.ok) {
     const text = await res.text()
+    console.error(`Gateway error ${res.status}:`, text)
     return new Response(
-      JSON.stringify({ error: `Gateway error: ${res.status} ${text}` }),
+      JSON.stringify({ error: "Gateway temporarily unavailable" }),
       { status: 502, headers: { "Content-Type": "application/json" } },
     )
   }
@@ -59,6 +64,12 @@ export async function createGatewayStream(options: GatewayStreamOptions): Promis
 
   const stream = new ReadableStream({
     async start(controller) {
+      // Emit agent metadata before streaming content
+      if (initialMeta) {
+        controller.enqueue(
+          new TextEncoder().encode(`data: ${JSON.stringify({ meta: initialMeta })}\n\n`),
+        )
+      }
       gatewayReader = res.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ""
@@ -116,5 +127,37 @@ export async function createGatewayStream(options: GatewayStreamOptions): Promis
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
     },
+  })
+}
+
+function hasImageContent(messages: StreamMessage[]): boolean {
+  return messages.some((msg) => {
+    if (!Array.isArray(msg.content)) return false
+    return (msg.content as Array<{ type: string }>).some(
+      (part) => part.type === "image_url",
+    )
+  })
+}
+
+export async function createSmartStream(
+  options: GatewayStreamOptions,
+): Promise<Response> {
+  if (!options.model || !hasImageContent(options.messages)) {
+    return createGatewayStream(options)
+  }
+
+  const provider = providerKeyFromId(options.model)
+  if (!provider) {
+    // Unsupported provider (e.g. Ollama) — fall back to gateway
+    return createGatewayStream(options)
+  }
+
+  return createDirectProviderStream({
+    messages: options.messages,
+    model: options.model,
+    provider,
+    initialMeta: options.initialMeta,
+    onComplete: options.onComplete,
+    postProcess: options.postProcess,
   })
 }

@@ -1,10 +1,10 @@
-import { SITE_CONFIG } from "@/lib/site-config"
-
 // Task / Kanban types
-export type TaskStatus = "Backlog" | "To Do This Week" | "In Progress" | "Requires More Info" | "Blocked" | "Needs Review" | "Completed";
+export type TaskStatus = "Backlog" | "To Be Scheduled" | "To Do This Week" | "In Progress" | "Requires More Info" | "Blocked" | "Needs Review" | "Completed";
 export type TaskPriority = "High" | "Medium" | "Low";
-export type TaskCategory = (typeof SITE_CONFIG.taskCategories)[number];
+export type TaskCategory = "Business A" | "Business B" | "Business C" | "Personal";
 export type TaskSource = "Manual" | "Cron" | "Heartbeat" | "Meeting" | "Approval";
+export type TaskComplexity = "Simple" | "Moderate" | "Complex";
+export type TaskAssignee = "AI Assistant" | "User";
 
 export interface Task {
   id: string;
@@ -15,6 +15,9 @@ export interface Task {
   category: TaskCategory;
   dueDate?: string;
   source: TaskSource;
+  complexity?: TaskComplexity;
+  estimatedMinutes?: number;
+  assignee?: TaskAssignee;
   goalId: string;
   goalName?: string;
   notionPageId?: string;
@@ -96,7 +99,7 @@ export interface CalendarEvent {
 }
 
 // Chat types
-export type ChatTopic = "general" | "briefs" | "reports" | "research" | "tasks" | "self-improvement" | "memory";
+export type ChatTopic = "general" | "briefs" | "reports" | "research" | "tasks" | "coaching" | "system-improvement" | "memory";
 
 export interface ChatTopicConfig {
   id: ChatTopic;
@@ -128,6 +131,8 @@ export interface ChatMessage {
     briefId?: string;
     briefType?: string;
     tasks_created?: Array<{ id: string; name: string }>;
+    agentId?: string;
+    agentName?: string;
   };
 }
 
@@ -146,23 +151,42 @@ export interface GatewayConfig {
 }
 
 // Re-export domain types
-export type { Comment } from "./comment.types";
+export type { Comment, LeadComment } from "./comment.types";
 export type { Goal, GoalStatus, GoalCategory } from "./goal.types";
-export type { ContentItem, ContentColumn, ContentType, ContentStage, ContentPlatform, ContentSource } from "./content.types";
+export type {
+  ContentItem, ContentColumn, ContentType, ContentStage, ContentPlatform, ContentSource,
+  IdeaCategory, IdeaSourceType, ContentFormat,
+  IdeaSourcePlatform, IdeaSourceFrequency, IdeaSource, IdeaSourceValidation,
+} from "./content.types";
 export type { ApprovalItem, ApprovalCategory, ApprovalStatus, ApprovalPriority, ApprovalRequester } from "./approval.types";
 export type { MemoryItem, MemoryCategory, MemorySuggestion, SuggestionStatus, SearchResult } from "./memory.types"
 export type { ChatMessageRow, ChatSession, MentionCategory, MentionItem } from "./chat.types";
 export type {
   AgentType, SkillStatus, AgentDefinition, BusinessDefinition,
   SkillInfo, SkillMissing, SkillInstallSpec, AgentLiveData, AgentWithLiveData, ArchitectureData,
-  AgentNodeData, BusinessNodeData, SkillGroupNodeData, SkillDetail,
+  AgentNodeData, BusinessNodeData, SkillGroupNodeData, SkillDetail, ModelInfo,
+  ModelDetail, ModelDetailAgent, ModelDetailCronJob,
 } from "./architecture.types";
 export type { Brief, BriefType, BriefKind, BriefSearchParams, BriefSearchResult } from "./brief.types";
 export type { HeartbeatEvent, HeartbeatStatus, HeartbeatStats } from "./heartbeat.types";
-export type { Document, DocumentCategory } from "./document.types";
+export type { Document, DocumentCategory, DocumentFolder } from "./document.types";
 export type { Project, ProjectFile, CreateProjectInput, UpdateProjectInput } from "./project.types";
 export type {
   McpTransport, McpAuthType, McpServerStatus, McpCallStatus,
   McpServer, McpTool, McpBinding, McpCallLog, McpObservabilityStats,
   CreateMcpServerInput, UpdateMcpServerInput,
-} from "./mcp.types";
+} from "./mcp.types"
+export type {
+  ThreadStatus, ThreadCategory, MessageDirection, LinkedInActionType, LinkedInActionStatus,
+  LinkedInThread, LinkedInMessage, LinkedInAction, WampV2Score, RightPanelView, WampBand,
+  InvitationDecision, ProcessedInvitation, InvitationStats,
+  DraftHistoryEntry, ScoreHistoryEntry,
+} from "./linkedin.types";
+export type {
+  Lead, LeadStatus, LeadPriority, LeadSource, LeadBusiness,
+  LeadActivity, LeadActivityType, LeadStats, CallOutcome,
+} from "./lead.types";
+export type {
+  Post, PostFormat, PostStage, PostPlatform, PlatformStatus,
+  PostPlatformEntry, PostMedia, CarouselSlide, StudioColumn,
+} from "./studio.types";
